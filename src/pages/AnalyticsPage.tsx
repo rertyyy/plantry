@@ -181,8 +181,8 @@ export default function AnalyticsPage() {
 
       // Calculate statistics
       const totalSpent = groceries?.reduce((sum, item) => sum + (Number(item.cost) * (item.quantity || 1)), 0) || 0;
-      const totalWeeksRecorded = weeklyExpenses?.length || 1; // Ensure we don't divide by zero
-      const avgWeeklySpend = totalSpent / totalWeeksRecorded; // Correct formula: total spent / total weeks recorded
+     const totalWeeksRecorded = weeklyExpenses?.length || 1;
+const avgWeeklySpend = weeklyExpenses?.reduce((sum, w) => sum + w.total_amount, 0) / totalWeeksRecorded;
       
       const mostExpensive = groceries?.reduce((max, item) => {
         const totalCost = Number(item.cost) * (item.quantity || 1);
