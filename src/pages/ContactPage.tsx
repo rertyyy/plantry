@@ -92,9 +92,8 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium">Office</p>
                     <p className="text-sm text-muted-foreground">
-                      123 Tech Street<br />
-                      London, EC1A 1BB<br />
-                      United Kingdom
+                      Amsterdam, North Holland<br />
+                      Netherlands
                     </p>
                   </div>
                 </div>
