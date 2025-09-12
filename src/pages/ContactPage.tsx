@@ -75,7 +75,7 @@ export default function ContactPage() {
                   <Phone className="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <p className="text-sm text-muted-foreground">+44 20 1234 5678</p>
+                    <p className="text-sm text-muted-foreground">+31616892699</p>
                   </div>
                 </div>
                 
