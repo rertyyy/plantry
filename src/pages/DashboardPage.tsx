@@ -179,7 +179,7 @@ const itemCount = groceries?.reduce((sum, item) =>
         <div className="flex-1 p-8">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">
-              GoodPlates Dashboard
+              Dashboard
             </h1>
             <p className="text-xl text-muted-foreground">
               Track your pantry expenses, manage inventory, and monitor analytics
