@@ -48,7 +48,7 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Have questions about GoodPlates? We're here to help you make the most of your grocery planning.
+            Have questions about Plantry? We're here to help you make the most of your grocery planning.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export default function ContactPage() {
                   <Mail className="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">support@goodplates.com</p>
+                    <p className="text-sm text-muted-foreground">aethersites@gmail.com</p>
                   </div>
                 </div>
                 
