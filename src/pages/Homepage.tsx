@@ -359,72 +359,13 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* Architecture Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
-        
-      </section>
+    
 
       {/* Awards & Recognition */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-secondary">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Awards & Recognition
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Recognized by industry leaders for innovation and excellence
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {awards.map((award, index) => <div key={index} className="apple-card p-6 rounded-xl text-center hover-lift animate-scale-in" style={{
-            animationDelay: `${index * 0.1}s`
-          }}>
-                <Award className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="font-bold text-foreground mb-2">{award.name}</h3>
-                <p className="text-sm text-muted-foreground mb-1">{award.organization}</p>
-                <p className="text-xs text-muted-foreground">{award.year}</p>
-              </div>)}
-          </div>
-        </div>
-      </section>
 
       {/* Testimonials */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              What people are saying.
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Real stories from our community of users
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => <div key={index} className="apple-card p-8 rounded-2xl hover-lift animate-fade-in-up" style={{
-            animationDelay: `${index * 0.2}s`
-          }}>
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold mr-4">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground">{testimonial.name}</h4>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </div>
-                <div className="flex mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-500 fill-current" />)}
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  "{testimonial.content}"
-                </p>
-              </div>)}
-          </div>
-        </div>
-      </section>
-
+      
       {/* Call to Action */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-foreground text-background">
         <div className="max-w-4xl mx-auto text-center animate-fade-in">
