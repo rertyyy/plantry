@@ -107,16 +107,12 @@ export default function DashboardPage() {
     {
       title: "Total Cost",
       value: `$${realTimeStats.totalCost.toFixed(2)}`,
-      change: realTimeStats.weeklyExpenses.length > 1 
-        ? `${((realTimeStats.weeklyExpenses[0]?.total_amount - realTimeStats.weeklyExpenses[1]?.total_amount) / realTimeStats.weeklyExpenses[1]?.total_amount * 100).toFixed(1)}%`
-        : "New",
       icon: DollarSign,
       trend: realTimeStats.weeklyExpenses.length > 1 && realTimeStats.weeklyExpenses[0]?.total_amount > realTimeStats.weeklyExpenses[1]?.total_amount ? "up" : "down"
     },
     {
       title: "Items Tracked",
       value: realTimeStats.itemCount.toString(),
-      change: "+New items",
       icon: Package,
       trend: "up"
     },
