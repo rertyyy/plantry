@@ -66,14 +66,13 @@ export default function DashboardPage() {
       if (expensesError) throw expensesError;
 
       // Calculate stats (only non-archived items)
-      const totalCost = groceries?.reduce((sum, item) => 
-  item.type === "Pantry" ? sum + item.cost * item.quantity : sum
-, 0) || 0;
-
-const itemCount = groceries?.reduce((sum, item) => 
-  item.type === "Pantry" ? sum + item.quantity : sum
-, 0) || 0;
-
+      
+        const totalCost = (groceries ?? []).reduce((sum, item) =>
+          item.type === 'pantry' ? sum + Number(item.cost) * Number(item.quantity) : sum, 0);
+        
+        const itemCount = (groceries ?? []).reduce((sum, item) =>
+          item.type === 'pantry' ? sum + Number(item.quantity) : sum, 0);
+      
       
       // Calculate expiring soon (only pantry items, non-archived)
       const today = new Date();
