@@ -35,22 +35,6 @@ export default function WeeklyExpensesChart({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // normalize a date into a stable YYYY-MM-DD week-start key (local)
-  function getWeekStartKey(date: string | Date, weekStartsOnLocal = weekStartsOn): string {
-    const d = new Date(date);
-    // compute local week-start (avoid UTC shifts by working with local date)
-    const day = d.getDay();
-    const diff = (day < weekStartsOnLocal ? 7 : 0) + day - weekStartsOnLocal;
-    d.setDate(d.getDate() - diff);
-    d.setHours(0, 0, 0, 0);
-    // produce stable YYYY-MM-DD key in local timezone. Use toISOString then slice UTC date
-    // but toISOString is UTC — using components to produce local YYYY-MM-DD prevents timezone drift in labels
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
   const fetchWeeklyExpenses = async () => {
     setLoading(true);
     try {
@@ -70,8 +54,7 @@ export default function WeeklyExpensesChart({
 
       for (const row of raw) {
         // prefer backend-provided week_start, fallback to created_at
-        const sourceDate = row.week_start || row.created_at || new Date().toISOString();
-        const key = getWeekStartKey(sourceDate);
+        const key = row.week_start;
 
         if (!map.has(key)) {
           // create normalized row: set canonical week_start to YYYY-MM-DDT00:00:00 (UTC-ish marker)
