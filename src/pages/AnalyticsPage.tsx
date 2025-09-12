@@ -183,6 +183,21 @@ export default function AnalyticsPage() {
       const totalSpent = groceries?.reduce((sum, item) => sum + (Number(item.cost) * (item.quantity || 1)), 0) || 0;
      const totalWeeksRecorded = weeklyExpenses?.length || 1;
 const avgWeeklySpend = weeklyExpenses?.reduce((sum, w) => sum + w.total_amount, 0) / totalWeeksRecorded;
+
+      // ✅ Build monthly totals (for Monthly Spending Trends)
+const monthlyTrends = (groceries || []).reduce((acc, item) => {
+  const d = new Date(item.created_at || item.updated_at);
+  const month = d.toLocaleString("default", { month: "short", year: "numeric" });
+  const cost = Number(item.cost) * (item.quantity || 1);
+
+  const existing = acc.find(m => m.month === month);
+  if (existing) {
+    existing.total += cost;
+  } else {
+    acc.push({ month, total: cost });
+  }
+  return acc;
+}, [] as { month: string; total: number }[]);
       
       const mostExpensive = (groceries || []).reduce((max, item) => {
   const unitPrice = Number(item.cost ?? 0);
@@ -404,40 +419,44 @@ const avgWeeklySpend = weeklyExpenses?.reduce((sum, w) => sum + w.total_amount, 
           </div>
 
           {/* Charts Row 2 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            {/* Monthly Trends */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Monthly Spending Trends</CardTitle>
-                <CardDescription>
-                  Total spending and average item cost by month
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyTrends}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip 
-                      formatter={(value: any, name: string) => 
-                        name === 'Items' ? value : `$${Number(value).toFixed(2)}`
-                      }
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))'
-                      }}
-                    />
-                    <Legend />
-                    <Bar yAxisId="left" dataKey="total" fill="hsl(var(--primary))" name="Total Spent" />
-                    <Bar yAxisId="right" dataKey="items" fill="hsl(var(--foreground))" name="Items" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+          {/* Charts Row 2 */}
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+  {/* Monthly Trends */}
+  <Card className="lg:col-span-2">
+    <CardHeader>
+      <CardTitle>Monthly Spending Trends</CardTitle>
+      <CardDescription>
+        Total spending by month
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={monthlyTrends}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip 
+            formatter={(value: any) => `$${Number(value).toFixed(2)}`}
+            contentStyle={{ 
+              backgroundColor: 'hsl(var(--background))',
+              border: '1px solid hsl(var(--border))'
+            }}
+          />
+          <Legend />
+          <Line 
+            type="monotone" 
+            dataKey="total" 
+            stroke="hsl(var(--primary))" 
+            strokeWidth={3} 
+            dot={{ r: 4 }} 
+            name="Total Spent" 
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </CardContent>
+  </Card>
+</div>
 
-          </div>
 
           {/* Key Insights */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
