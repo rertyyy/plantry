@@ -31,6 +31,15 @@ export default function DashboardPage() {
     }>
   });
 
+  function getCustomWeekStart(date, weekStartsOn = 1) { // 0 = Sunday, 1 = Monday
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
+  d.setDate(d.getDate() - diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
   useEffect(() => {
     // Check authentication
     const checkAuth = async () => {
@@ -218,124 +227,58 @@ export default function DashboardPage() {
               <BudgetSettings user={user} onBudgetUpdate={handleBudgetUpdate} />
             )}
 
-            {/* Spending Chart */}
-            <div className="apple-card p-6 rounded-xl">
-              <h3 className="text-2xl font-semibold text-foreground mb-6">
-                Weekly Pantry Expenses
-              </h3>
-              
-              <div className="space-y-4">
-                {realTimeStats.weeklyExpenses.length > 0 ? (
-                  realTimeStats.weeklyExpenses.map((expense, index) => {
-                    const maxAmount = Math.max(...realTimeStats.weeklyExpenses.map(e => e.total_amount), weeklyBudget);
-                    const width = `${(expense.total_amount / maxAmount) * 100}%`;
-                    const weekStart = new Date(expense.week_start);
-                    const budgetPercentage = (expense.total_amount / weeklyBudget) * 100;
-                    
-                    return (
-                      <div key={expense.id} className="flex items-center space-x-4">
-                        <div className="w-16 text-sm text-muted-foreground">
-                          {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </div>
-                        <div className="flex-1">
-                          <div className="w-full bg-grey-200 rounded-full h-3 relative">
-                            <div 
-                              className={`h-3 rounded-full transition-all duration-500 ${
-                                budgetPercentage > 100 ? 'bg-red-500' : 
-                                budgetPercentage > 80 ? 'bg-yellow-500' : 'bg-primary'
-                              }`}
-                              style={{ width }}
-                            ></div>
-                          </div>
-                        </div>
-                        <div className="w-20 text-sm font-medium text-right">
-                          ${expense.total_amount.toFixed(2)}
-                          <div className="text-xs text-muted-foreground">
-                            {budgetPercentage.toFixed(0)}% of budget
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No weekly expense data yet</p>
-                    <p className="text-sm">Add items to pantry to start tracking</p>
-                  </div>
-                )}
+            
+{/* Spending Chart */}
+<div className="apple-card p-6 rounded-xl">
+  <h3 className="text-2xl font-semibold text-foreground mb-6">
+    Weekly Pantry Expenses
+  </h3>
+  
+  <div className="space-y-4">
+    {realTimeStats.weeklyExpenses.length > 0 ? (
+      realTimeStats.weeklyExpenses.map((expense, index) => {
+        const maxAmount = Math.max(...realTimeStats.weeklyExpenses.map(e => e.total_amount), weeklyBudget);
+        const width = `${(expense.total_amount / maxAmount) * 100}%`;
+        
+        // 👇 override: ignore backend `week_start`, calculate it fresh
+        const weekStart = getCustomWeekStart(expense.created_at || expense.some_date);
+        
+        const budgetPercentage = (expense.total_amount / weeklyBudget) * 100;
+        
+        return (
+          <div key={expense.id} className="flex items-center space-x-4">
+            <div className="w-16 text-sm text-muted-foreground">
+              {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </div>
+            <div className="flex-1">
+              <div className="w-full bg-grey-200 rounded-full h-3 relative">
+                <div 
+                  className={`h-3 rounded-full transition-all duration-500 ${
+                    budgetPercentage > 100 ? 'bg-red-500' : 
+                    budgetPercentage > 80 ? 'bg-yellow-500' : 'bg-primary'
+                  }`}
+                  style={{ width }}
+                ></div>
               </div>
             </div>
-
-            {/* Pantry Analytics */}
-            <div className="apple-card p-6 rounded-xl">
-              <h3 className="text-2xl font-semibold text-foreground mb-6">
-                Pantry Analytics
-              </h3>
-              
-              <div className="space-y-4">
-                {[
-                  { 
-                    category: "Current Week vs Budget", 
-                    amount: realTimeStats.weeklyExpenses[0]?.total_amount || 0, 
-                    width: `${Math.min((realTimeStats.weeklyExpenses[0]?.total_amount || 0) / weeklyBudget * 100, 100)}%`,
-                    isAmount: true,
-                    percentage: ((realTimeStats.weeklyExpenses[0]?.total_amount || 0) / weeklyBudget * 100).toFixed(1)
-                  },
-                  { 
-                    category: "Previous Week vs Budget", 
-                    amount: realTimeStats.weeklyExpenses[1]?.total_amount || 0, 
-                    width: `${Math.min((realTimeStats.weeklyExpenses[1]?.total_amount || 0) / weeklyBudget * 100, 100)}%`,
-                    isAmount: true,
-                    percentage: ((realTimeStats.weeklyExpenses[1]?.total_amount || 0) / weeklyBudget * 100).toFixed(1)
-                  },
-                  { 
-                    category: "Budget Remaining", 
-                    amount: Math.max(weeklyBudget - (realTimeStats.weeklyExpenses[0]?.total_amount || 0), 0), 
-                    width: `${Math.max(100 - ((realTimeStats.weeklyExpenses[0]?.total_amount || 0) / weeklyBudget * 100), 0)}%`,
-                    isAmount: true,
-                    percentage: Math.max(100 - ((realTimeStats.weeklyExpenses[0]?.total_amount || 0) / weeklyBudget * 100), 0).toFixed(1)
-                  },
-                  { 
-                    category: "Total Weeks Tracked", 
-                    amount: realTimeStats.weeklyExpenses.length, 
-                    width: `${Math.min(realTimeStats.weeklyExpenses.length * 10, 100)}%`,
-                    isAmount: false,
-                    percentage: "100"
-                  }
-                ].map((data, index) => {
-                  const isOverBudget = index === 0 && (realTimeStats.weeklyExpenses[0]?.total_amount || 0) > weeklyBudget;
-                  const isLowBudget = index === 2 && parseFloat(data.percentage) < 20;
-                  
-                  return (
-                    <div key={index} className="apple-surface p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium text-foreground">
-                          {data.category}
-                        </span>
-                        <div className="text-right">
-                          <span className="text-lg font-bold text-primary">
-                            {data.isAmount ? `$${data.amount.toFixed(2)}` : data.amount}
-                          </span>
-                          <div className="text-xs text-muted-foreground">
-                            {data.percentage}%
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-full bg-grey-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            isOverBudget ? 'bg-red-500' :
-                            isLowBudget ? 'bg-yellow-500' : 'bg-primary'
-                          }`}
-                          style={{ width: data.width }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="w-20 text-sm font-medium text-right">
+              ${expense.total_amount.toFixed(2)}
+              <div className="text-xs text-muted-foreground">
+                {budgetPercentage.toFixed(0)}% of budget
               </div>
             </div>
           </div>
+        );
+      })
+    ) : (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No weekly expense data yet</p>
+        <p className="text-sm">Add items to pantry to start tracking</p>
+      </div>
+    )}
+  </div>
+</div>
+
 
           {/* Recent Entries Table */}
           <div className="apple-card rounded-xl overflow-hidden">
