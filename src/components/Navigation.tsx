@@ -100,8 +100,13 @@ export const Navigation = () => {
     <nav className="bg-surface border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-foreground">GoodPlates</h1>
+          <div className="flex items-center space-x-2">
+                      <img
+            src="/favicon.ico"
+            alt="favicon"
+            className="w-6 h-6"
+          />
+    <h1 className="text-lg font-semibold text-foreground">Plantry</h1>
           </div>
           <div className="flex items-center space-x-8">
             <div className="flex space-x-8">
