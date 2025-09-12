@@ -184,10 +184,13 @@ export default function AnalyticsPage() {
      const totalWeeksRecorded = weeklyExpenses?.length || 1;
 const avgWeeklySpend = weeklyExpenses?.reduce((sum, w) => sum + w.total_amount, 0) / totalWeeksRecorded;
       
-      const mostExpensive = groceries?.reduce((max, item) => {
-        const totalCost = Number(item.cost) * (item.quantity || 1);
-        return totalCost > max.cost ? { name: `${item.name} (x${item.quantity || 1})`, cost: totalCost } : max;
-      }, { name: "", cost: 0 }) || { name: "", cost: 0 };
+      const mostExpensive = (groceries || []).reduce((max, item) => {
+  const unitPrice = Number(item.cost ?? 0);
+  // ignore NaN / invalid costs by treating them as 0
+  return unitPrice > max.cost
+    ? { name: item.name || "", cost: unitPrice }
+    : max;
+}, { name: "", cost: 0 });
 
       const budgetCompliance = weeklyExpenses?.filter(week => week.total_amount <= weeklyBudget).length || 0;
       const totalWeeks = weeklyExpenses?.length || 1;
