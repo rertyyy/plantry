@@ -826,18 +826,6 @@ export default function InsightsPage() {
                 </div>
                 <div className="text-3xl font-bold text-foreground mb-2">
                   {groceryData.expiredItemsThisWeek}
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">expired items in your cart</p>
-                <div className="flex items-center gap-1 text-xs">
-                  {groceryData.expiredItemsTrend > 0 ? (
-                    <TrendingUp className="h-3 w-3 text-destructive" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-success" />
-                  )}
-                  <span className={groceryData.expiredItemsTrend > 0 ? "text-destructive" : "text-success"}>
-                    {groceryData.expiredItemsTrend > 0 ? '+' : ''}{groceryData.expiredItemsTrend}% from last week
-                  </span>
-                </div>
               </CardContent>
             </Card>
 
@@ -857,16 +845,6 @@ export default function InsightsPage() {
                   ${groceryData.expiredLossThisWeek.toFixed(2)}
                 </div>
                 <p className="text-sm text-muted-foreground mb-3">lost due to expiration</p>
-                <div className="flex items-center gap-1 text-xs">
-                  {groceryData.expiredLossTrend > 0 ? (
-                    <TrendingUp className="h-3 w-3 text-destructive" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-success" />
-                  )}
-                  <span className={groceryData.expiredLossTrend > 0 ? "text-destructive" : "text-success"}>
-                    {groceryData.expiredLossTrend > 0 ? '+' : ''}${Math.abs(groceryData.expiredLossTrend).toFixed(2)} from last week
-                  </span>
-                </div>
               </CardContent>
             </Card>
 
