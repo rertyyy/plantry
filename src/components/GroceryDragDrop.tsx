@@ -374,6 +374,7 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
 
     setEditingItem(null);
     setEditForm({ name: '', cost: '', quantity: '1', expiration_date: '' });
+await fetchRealTimeData(user); // after successful deletes
 
     toast({
       title: "Item deleted",
