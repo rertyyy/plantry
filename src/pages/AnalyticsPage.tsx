@@ -21,18 +21,20 @@ export default function AnalyticsPage() {
   const [monthlyTrends, setMonthlyTrends] = useState<any[]>([]);
   const [expirationData, setExpirationData] = useState<any[]>([]);
   const [statistics, setStatistics] = useState({
-    totalSpent: 0,
-    averageWeeklySpend: 0,
-    mostExpensiveItem: { name: "", cost: 0 },
-    totalItems: 0,
-    pantryItems: 0,
-    groceryItems: 0,
-    expiredItems: 0,
-    expiringThisWeek: 0,
-    averageItemCost: 0,
-    budgetCompliance: 0,
-    weeklyBudget: 100
-  });
+  totalSpent: 0,
+  monthlyTotal: 0,             // added
+  currentMonthLabel: '',       // added
+  averageWeeklySpend: 0,
+  mostExpensiveItem: { name: "", cost: 0 },
+  totalItems: 0,
+  pantryItems: 0,
+  groceryItems: 0,
+  expiredItems: 0,
+  expiringThisWeek: 0,
+  averageItemCost: 0,
+  budgetCompliance: 0,
+  weeklyBudget: 100
+});
 
   useEffect(() => {
     const checkAuthAndSubscription = async () => {
@@ -157,11 +159,7 @@ export default function AnalyticsPage() {
         { name: 'Later', value: expirationGroups.later, color: '#10b981' }
       ]);
 
-      // Calculate statistics
-      const totalSpent = groceries?.reduce((sum, item) => sum + (Number(item.cost) * (item.quantity || 1)), 0) || 0;
-     const totalWeeksRecorded = weeklyExpenses?.length || 1;
-const avgWeeklySpend = weeklyExpenses?.reduce((sum, w) => sum + w.total_amount, 0) / totalWeeksRecorded;
-
+      
       // ---- REPLACEMENT: robust monthly totals + stats (pantry-only) ----
               const ONLY_PANTRY = true; // set false to include grocery type too
               const MONTHS_TO_KEEP = 12;
@@ -470,14 +468,14 @@ const avgWeeklySpend = weeklyExpenses?.reduce((sum, w) => sum + w.total_amount, 
             }}
           />
           <Legend />
-          <Line 
-            type="monotone" 
-            dataKey="total" 
-            stroke="hsl(var(--primary))" 
-            strokeWidth={3} 
-            dot={{ r: 4 }} 
-            name="Total Spent" 
-          />
+          <Line
+        type="monotone"
+        dataKey="total"
+        stroke="hsl(var(--primary))"
+        strokeWidth={3}
+        dot={{ r: 4 }}
+        name="Monthly"
+      />
         </LineChart>
       </ResponsiveContainer>
     </CardContent>
