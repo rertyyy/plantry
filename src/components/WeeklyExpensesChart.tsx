@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -18,34 +18,70 @@ interface WeeklyExpensesChartProps {
 export default function WeeklyExpensesChart({ user }: WeeklyExpensesChartProps) {
   const [expenses, setExpenses] = useState<WeeklyExpense[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMounted = useRef(true);
+
+  // track mount/unmount to avoid setState after unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (user) {
       fetchWeeklyExpenses();
+    } else {
+      // clear when no user
+      setExpenses([]);
+      setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchWeeklyExpenses = async () => {
+    if (!user) {
+      if (isMounted.current) {
+        setExpenses([]);
+        setLoading(false);
+      }
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const { data, error } = await supabase
         .from("weekly_expenses")
         .select("*")
+        .eq("user_id", user.id)                      // <-- important: only this user's rows
         .order("week_start", { ascending: false })
-        .limit(16); // fetch a few more to allow deduplication
+        .limit(100); // larger so client-side merge doesn't accidentally miss weeks
 
       if (error) throw error;
 
-      const raw = (data || []) as WeeklyExpense[];
+      const raw = (data || []) as any[];
 
-      // ✅ merge duplicates by week_start
+      // merge duplicates by week_start and normalize numeric fields
       const map = new Map<string, WeeklyExpense>();
       for (const row of raw) {
-        if (!map.has(row.week_start)) {
-          map.set(row.week_start, { ...row });
+        const weekStart = row.week_start;
+        const total_amount = Number(row.total_amount || 0);
+        const item_count = Number(row.item_count || 0);
+
+        if (!map.has(weekStart)) {
+          map.set(weekStart, {
+            id: row.id,
+            week_start: row.week_start,
+            week_end: row.week_end,
+            total_amount,
+            item_count,
+            created_at: row.created_at,
+          });
         } else {
-          const existing = map.get(row.week_start)!;
-          existing.total_amount += Number(row.total_amount || 0);
-          existing.item_count += Number(row.item_count || 0);
+          const existing = map.get(weekStart)!;
+          existing.total_amount = Number(existing.total_amount || 0) + total_amount;
+          existing.item_count = Number(existing.item_count || 0) + item_count;
         }
       }
 
@@ -54,11 +90,11 @@ export default function WeeklyExpensesChart({ user }: WeeklyExpensesChartProps) 
         .sort((a, b) => b.week_start.localeCompare(a.week_start))
         .slice(0, 8);
 
-      setExpenses(grouped);
-    } catch (error) {
-      console.error("Error fetching weekly expenses:", error);
+      if (isMounted.current) setExpenses(grouped);
+    } catch (err) {
+      console.error("Error fetching weekly expenses:", err);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
@@ -66,6 +102,6 @@ export default function WeeklyExpensesChart({ user }: WeeklyExpensesChartProps) 
     return null;
   }
 
-  const maxAmount = Math.max(...expenses.map((e) => e.total_amount), 1);
-  return null; // ⬅️ still renders nothing (just like your original)
+  const maxAmount = Math.max(...expenses.map((e) => Number(e.total_amount || 0)), 1);
+  return null; // keep your chart rendering here later
 }
