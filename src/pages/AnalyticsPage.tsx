@@ -491,3 +491,4 @@ const monthlyTrends = (groceries || []).reduce((acc, item) => {
       </div>
     );
   }
+
