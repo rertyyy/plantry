@@ -399,7 +399,7 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
   if (!editingItem) return;
 
   try {
-    // Delete the grocery item
+    // 1) Delete the grocery row
     const { error: groceryError } = await supabase
       .from('groceries')
       .delete()
@@ -407,24 +407,62 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
 
     if (groceryError) throw groceryError;
 
-    // Delete related weekly_expenses for the week that includes this grocery's created_at
-    const { error: weeklyError } = await supabase
-      .from('weekly_expenses')
-      .delete()
-      .eq('user_id', user.id)
-      .gte('week_start', editingItem.created_at)
-      .lte('week_end', editingItem.created_at);
+    // 2) Find the week row that covers the grocery's created_at (or fallback to expiration_date)
+    const createdAtRaw = editingItem.created_at || editingItem.expiration_date || null;
+    if (createdAtRaw) {
+      // normalize to YYYY-MM-DD so we compare date -> date
+      const createdDateOnly = new Date(createdAtRaw).toISOString().split('T')[0];
 
-    if (weeklyError) throw weeklyError;
+      // fetch the weekly_expenses row that includes this date
+      const { data: weekRows, error: fetchWeekError } = await supabase
+        .from('weekly_expenses')
+        .select('*')
+        .eq('user_id', user.id)
+        .lte('week_start', createdDateOnly)  // week_start <= date
+        .gte('week_end', createdDateOnly);   // week_end >= date
 
-    // Update local state
+      if (fetchWeekError) throw fetchWeekError;
+
+      const weekRow = (weekRows && weekRows.length > 0) ? (weekRows[0] as any) : null;
+
+      if (weekRow) {
+        // compute amounts to subtract (safe numeric coercion)
+        const amountToSubtract = (Number(editingItem.cost) || 0) * (Number(editingItem.quantity) || 1);
+        const newTotal = Math.max(0, Number(weekRow.total_amount || 0) - amountToSubtract);
+        const newItemCount = Math.max(0, Number(weekRow.item_count || 0) - 1);
+
+        if (newTotal === 0 && newItemCount === 0) {
+          // remove the week row entirely if nothing remains
+          const { error: delWeekError } = await supabase
+            .from('weekly_expenses')
+            .delete()
+            .eq('id', weekRow.id);
+
+          if (delWeekError) throw delWeekError;
+        } else {
+          // otherwise update the aggregated values
+          const { error: updateWeekError } = await supabase
+            .from('weekly_expenses')
+            .update({
+              total_amount: newTotal,
+              item_count: newItemCount
+            })
+            .eq('id', weekRow.id);
+
+          if (updateWeekError) throw updateWeekError;
+        }
+      }
+      // if no weekRow found — nothing to change (safe)
+    }
+
+    // 3) Update local state
     setItems(items.filter(item => item.id !== editingItem.id));
     setAllItems(allItems.filter(item => item.id !== editingItem.id));
 
     setEditingItem(null);
     setEditForm({ name: '', cost: '', quantity: '1', expiration_date: '' });
 
-    // Refresh dashboard stats
+    // 4) Refresh dashboard stats
     await fetchRealTimeData(user);
 
     toast({
@@ -434,11 +472,12 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
   } catch (error: any) {
     toast({
       title: "Error",
-      description: "Failed to delete item: " + error.message,
+      description: "Failed to delete item: " + (error?.message || error),
       variant: "destructive",
     });
   }
 };
+
   
   const handleCancelEdit = () => {
     setEditingItem(null);
