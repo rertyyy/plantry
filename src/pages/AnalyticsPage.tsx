@@ -124,29 +124,7 @@ export default function AnalyticsPage() {
         { name: 'Grocery', value: groceryItems.reduce((sum, item) => sum + (Number(item.cost) * (item.quantity || 1)), 0), count: groceryItems.reduce((sum, item) => sum + (item.quantity || 1), 0) }
       ]);
 
-      // Process monthly trends
-      const monthlyData: { [key: string]: { total: number, count: number } } = {};
-      groceries?.forEach(item => {
-        const month = new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-        if (!monthlyData[month]) {
-          monthlyData[month] = { total: 0, count: 0 };
-        }
-        monthlyData[month].total += Number(item.cost) * (item.quantity || 1);
-        monthlyData[month].count += (item.quantity || 1);
-      });
-
-      const trends = Object.entries(monthlyData)
-        .map(([month, data]) => ({
-          month,
-          total: data.total,
-          average: data.total / data.count,
-          items: data.count
-        }))
-        .slice(-6)
-        .reverse();
-
-      setMonthlyTrends(trends);
-
+     
       // Process expiration data
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -184,46 +162,95 @@ export default function AnalyticsPage() {
      const totalWeeksRecorded = weeklyExpenses?.length || 1;
 const avgWeeklySpend = weeklyExpenses?.reduce((sum, w) => sum + w.total_amount, 0) / totalWeeksRecorded;
 
-      // ✅ Build monthly totals (for Monthly Spending Trends)
-const monthlyTrends = (groceries || []).reduce((acc, item) => {
-  const d = new Date(item.created_at || item.updated_at);
-  const month = d.toLocaleString("default", { month: "short", year: "numeric" });
-  const cost = Number(item.cost) * (item.quantity || 1);
-
-  const existing = acc.find(m => m.month === month);
-  if (existing) {
-    existing.total += cost;
-  } else {
-    acc.push({ month, total: cost });
-  }
-  return acc;
-}, [] as { month: string; total: number }[]);
+      // ---- REPLACEMENT: robust monthly totals + stats (pantry-only) ----
+              const ONLY_PANTRY = true; // set false to include grocery type too
+              const MONTHS_TO_KEEP = 12;
+              
+              // Build monthly totals grouped by YYYY-MM (reliable sorting key)
+              const monthlyMap = new Map<string, { total: number; items: number; label: string }>();
+              
+              (groceries || [])
+                .filter(it => !it.archived && (ONLY_PANTRY ? it.type === 'pantry' : true))
+                .forEach(item => {
+                  const d = item.created_at ? new Date(item.created_at) : item.updated_at ? new Date(item.updated_at) : new Date();
+                  const year = d.getFullYear();
+                  const monthNum = d.getMonth() + 1; // 1..12
+                  const key = `${year}-${String(monthNum).padStart(2, '0')}`; // YYYY-MM
+                  const label = d.toLocaleString('default', { month: 'short', year: 'numeric' }); // e.g. "Sep 2025"
+              
+                  const qty = Number(item.quantity ?? 1) || 1;
+                  const parsedCost = Number(item.cost);
+                  const unitCost = Number.isFinite(parsedCost) ? parsedCost : 0;
+                  const cost = unitCost * qty;
+              
+                  const existing = monthlyMap.get(key);
+                  if (existing) {
+                    existing.total += cost;
+                    existing.items += qty;
+                  } else {
+                    monthlyMap.set(key, { total: cost, items: qty, label });
+                  }
+                });
+              
+              // Convert map -> array, sort chronological (old -> new), keep last N months
+              const monthlyArr = Array.from(monthlyMap.entries())
+                .map(([key, v]) => ({
+                  key,
+                  month: v.label,
+                  total: Math.round((v.total + Number.EPSILON) * 100) / 100,
+                  items: v.items,
+                  average: v.items > 0 ? Math.round(((v.total / v.items) + Number.EPSILON) * 100) / 100 : 0
+                }))
+                .sort((a, b) => a.key.localeCompare(b.key))
+                .slice(-MONTHS_TO_KEEP);
+              
+              // Provide data to chart (chart expects chronological left->right)
+              setMonthlyTrends(monthlyArr);
+              
+              // Compute current month key and entry for the stat card
+              const currentMonthKey = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+              const currentMonthEntry = monthlyArr.find(m => m.key === currentMonthKey) ?? { total: 0, average: 0, items: 0 };
+              const monthlyTotal = currentMonthEntry.total;
+              const currentMonthLabel = currentMonthEntry.month || new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
+              
+              // Recompute / compute statistics (safe numeric parsing, round to cents where useful)
+              const totalSpent = (groceries || []).reduce((sum, item) => {
+                const qty = Number(item.quantity ?? 1) || 1;
+                const parsed = Number(item.cost);
+                const unit = Number.isFinite(parsed) ? parsed : 0;
+                return sum + unit * qty;
+              }, 0);
+              
+              const totalWeeksRecorded = weeklyExpenses?.length || 1;
+              const avgWeeklySpend = (weeklyExpenses?.reduce((sum, w) => sum + (w.total_amount || 0), 0) || 0) / totalWeeksRecorded;
+              
+              const mostExpensive = (groceries || []).reduce((max, item) => {
+                const unitPrice = Number(item.cost ?? 0);
+                return unitPrice > max.cost ? { name: item.name || "", cost: unitPrice } : max;
+              }, { name: "", cost: 0 });
+              
+              const budgetCompliance = weeklyExpenses?.filter(week => (week.total_amount || 0) <= weeklyBudget).length || 0;
+              const totalWeeks = weeklyExpenses?.length || 1;
+              
+              setStatistics({
+                // keep totalSpent available if you still need it elsewhere
+                totalSpent,
+                // new monthly-specific stat values
+                monthlyTotal: monthlyTotal ?? 0,
+                currentMonthLabel: currentMonthLabel ?? '',
+                averageWeeklySpend: avgWeeklySpend,
+                mostExpensiveItem: mostExpensive,
+                totalItems: groceries?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0,
+                pantryItems: pantryItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
+                groceryItems: groceryItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
+                expiredItems: expirationGroups.expired,
+                expiringThisWeek: expirationGroups.thisWeek + expirationGroups.today,
+                averageItemCost: (groceries?.length ?? 0) > 0 ? Math.round(((totalSpent / (groceries.reduce((s, i) => s + (i.quantity || 1), 0) || 1)) + Number.EPSILON) * 100) / 100 : 0,
+                budgetCompliance: (budgetCompliance / totalWeeks) * 100,
+                weeklyBudget
+              });
+              // ---- end replacement ----
       
-      const mostExpensive = (groceries || []).reduce((max, item) => {
-  const unitPrice = Number(item.cost ?? 0);
-  // ignore NaN / invalid costs by treating them as 0
-  return unitPrice > max.cost
-    ? { name: item.name || "", cost: unitPrice }
-    : max;
-}, { name: "", cost: 0 });
-
-      const budgetCompliance = weeklyExpenses?.filter(week => week.total_amount <= weeklyBudget).length || 0;
-      const totalWeeks = weeklyExpenses?.length || 1;
-
-      setStatistics({
-        totalSpent,
-        averageWeeklySpend: avgWeeklySpend,
-        mostExpensiveItem: mostExpensive,
-        totalItems: groceries?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0,
-        pantryItems: pantryItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
-        groceryItems: groceryItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
-        expiredItems: expirationGroups.expired,
-        expiringThisWeek: expirationGroups.thisWeek + expirationGroups.today,
-        averageItemCost: groceries?.length > 0 ? totalSpent / groceries.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0,
-        budgetCompliance: (budgetCompliance / totalWeeks) * 100,
-        weeklyBudget
-      });
-
     } catch (error) {
       console.error('Error fetching analytics data:', error);
     } finally {
@@ -233,10 +260,10 @@ const monthlyTrends = (groceries || []).reduce((acc, item) => {
 
   const statCards = [
     {
-      title: "Total Spent",
-      value: `$${statistics.totalSpent.toFixed(2)}`,
+      title: "This Month",
+      value: `$${(statistics.monthlyTotal ?? 0).toFixed(2)}`,
       icon: DollarSign,
-      description: "All time spending",
+      description: statistics.currentMonthLabel ? `Spending for ${statistics.currentMonthLabel}` : "Spending this month",
       trend: null
     },
     {
