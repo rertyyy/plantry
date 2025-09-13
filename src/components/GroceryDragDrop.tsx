@@ -346,6 +346,55 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
     }
   };
 
+  const fetchRealTimeData = async (user: any) => {
+  try {
+    // 1. Fetch all active groceries
+    const { data: groceries, error: groceriesError } = await supabase
+      .from("groceries")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("archived", false)
+      .order("created_at", { ascending: false });
+
+    if (groceriesError) throw groceriesError;
+
+    // 2. Fetch weekly expenses
+    const { data: weeklyExpenses, error: weeklyError } = await supabase
+      .from("weekly_expenses")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("week_start", { ascending: false });
+
+    if (weeklyError) throw weeklyError;
+
+    // 3. Build derived stats
+    const now = new Date();
+    const threeDaysFromNow = new Date(now);
+    threeDaysFromNow.setDate(now.getDate() + 3);
+
+    const expiringSoon = groceries.filter((item) => {
+      if (!item.expiration_date) return false;
+      const expDate = new Date(item.expiration_date);
+      return expDate >= now && expDate <= threeDaysFromNow;
+    }).length;
+
+    const recentEntries = groceries.slice(0, 5); // already sorted by created_at desc
+
+    // 4. Update state
+    setItems(groceries);
+    setAllItems(groceries);
+    setRealTimeStats({
+      itemCount: groceries.length,
+      expiringSoon,
+      weeklyExpenses,
+      recentEntries,
+    });
+  } catch (err: any) {
+    console.error("fetchRealTimeData failed:", err.message);
+  }
+};
+
+
   const handleDeleteItem = async () => {
   if (!editingItem) return;
 
