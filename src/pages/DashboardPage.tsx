@@ -36,6 +36,9 @@ export default function DashboardPage() {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+  navigate("/login");
+  return;
+}
       const fetchRealTimeData = async (user: User) => {
   try {
     // Fetch non-archived groceries for this user
@@ -128,7 +131,9 @@ export default function DashboardPage() {
     console.error('fetchRealTimeData failed:', err);
   }
 };
-
+}
+      checkAuth();
+}, []);
   const stats = [
     {
       title: "Total Cost",
