@@ -885,8 +885,10 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
                     Groceries
                   </h2>
                   <p className="text-muted-foreground">
-                    {groceryItems.length} items • Drag to move to pantry
-                  </p>
+                  {groceryItems
+                    .filter(item => item.type === "grocery")
+                    .reduce((total, item) => total + item.quantity, 0)} items • Drag to move to pantry
+                </p>
                 </div>
               </div>
               
@@ -927,7 +929,7 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
                     Pantry Items
                   </h2>
                   <p className="text-muted-foreground">
-                    {pantryItems.length} items • Weekly expenses tracked
+            {pantryItems.reduce((total, item) => total + item.quantity, 0)} items • Weekly expenses tracked
                   </p>
                 </div>
               </div>
