@@ -56,59 +56,15 @@ export default function DashboardPage() {
 
       if (groceriesError) throw groceriesError;
 
-      // Build weekly expenses from groceries so deletions/archived items are accounted for
-      const weeklyMap = new Map<string, {
-        id: string;
-        week_start: string;
-        week_end: string;
-        total_amount: number;
-        item_count: number;
-        created_at: string;
-      }>();
+      // Fetch weekly expenses
+      const { data: weeklyExpenses, error: expensesError } = await supabase
+        .from('weekly_expenses')
+        .select('*')
+        .order('week_start', { ascending: false })
+        .limit(7);
 
-      // keep weekStart logic identical to what you used before (Monday = start of week)
-        function getCustomWeekStart(date: string | Date, weekStartsOn = 1): Date {
-          const d = new Date(date);
-          const day = d.getDay(); // 0 = Sun, 1 = Mon, ...
-          const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
-          d.setDate(d.getDate() - diff);
-          d.setHours(0, 0, 0, 0);
-          return d;
-        }
-      
-      for (const item of (groceries || [])) {
-        if (item.type !== 'pantry') continue; // only pantry items count
+      if (expensesError) throw expensesError;
 
-        const cost = Number(item.cost || 0) * Number(item.quantity || 1);
-
-        // Use your helper to match existing week logic (Monday -> Sunday)
-        const weekStartDate = getCustomWeekStart(item.created_at || item.week_start || new Date());
-        const weekEndDate = new Date(weekStartDate);
-        weekEndDate.setDate(weekEndDate.getDate() + 6);
-
-        const key = weekStartDate.toISOString();
-
-        if (!weeklyMap.has(key)) {
-          weeklyMap.set(key, {
-            id: key,
-            week_start: weekStartDate.toISOString(),
-            week_end: weekEndDate.toISOString(),
-            total_amount: cost,
-            item_count: Number(item.quantity || 1),
-            created_at: item.created_at,
-          });
-        } else {
-          const existing = weeklyMap.get(key)!;
-          existing.total_amount += cost;
-          existing.item_count += Number(item.quantity || 1);
-        }
-      }
-
-      // sort descending by week_start and keep the latest 7 weeks
-      const computedWeeklyExpenses = Array.from(weeklyMap.values())
-        .sort((a, b) => b.week_start.localeCompare(a.week_start))
-        .slice(0, 7);
-      
       // Calculate stats (only non-archived items)
       
         const totalCost = (groceries ?? []).reduce((sum, item) =>
@@ -139,7 +95,7 @@ export default function DashboardPage() {
         totalCost,
         itemCount,
         expiringSoon,
-        weeklyExpenses: computedWeeklyExpenses,
+        weeklyExpenses: weeklyExpenses || [],
         recentEntries
       });
     } catch (error) {
@@ -461,6 +417,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
-
