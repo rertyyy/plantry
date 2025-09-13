@@ -9,6 +9,7 @@ interface WeeklyExpense {
   total_amount: number;
   item_count: number;
   created_at: string;
+    isFrozen?: boolean;
 }
 
 interface WeeklyExpensesChartProps {
@@ -40,63 +41,64 @@ export default function WeeklyExpensesChart({ user }: WeeklyExpensesChartProps) 
   }, [user]);
 
   const fetchWeeklyExpenses = async () => {
-    if (!user) {
-      if (isMounted.current) {
-        setExpenses([]);
-        setLoading(false);
+  if (!user) {
+    if (isMounted.current) {
+      setExpenses([]);
+      setLoading(false);
+    }
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const { data, error } = await supabase
+      .from("weekly_expenses")
+      .select("*")
+      .eq("user_id", user.id)                      // <-- important: only this user's rows
+      .order("week_start", { ascending: false })
+      .limit(100); // larger so client-side merge doesn't accidentally miss weeks
+
+    if (error) throw error;
+
+    const raw = (data || []) as any[];
+
+    // merge duplicates by week_start and normalize numeric fields
+    const map = new Map<string, WeeklyExpense>();
+    for (const row of raw) {
+      const weekStart = row.week_start;
+      const total_amount = Number(row.total_amount || 0);
+      const item_count = Number(row.item_count || 0);
+
+      if (!map.has(weekStart)) {
+        map.set(weekStart, {
+          id: row.id,
+          week_start: row.week_start,
+          week_end: row.week_end,
+          total_amount,
+          item_count,
+          created_at: row.created_at,
+        });
+      } else {
+        const existing = map.get(weekStart)!;
+        existing.total_amount = Number(existing.total_amount || 0) + total_amount;
+        existing.item_count = Number(existing.item_count || 0) + item_count;
       }
-      return;
     }
 
-    setLoading(true);
+    // sort descending by week_start and keep only 8
+    const grouped = Array.from(map.values())
+      .sort((a, b) => b.week_start.localeCompare(a.week_start))
+      .slice(0, 8);
 
-    try {
-      const { data, error } = await supabase
-        .from("weekly_expenses")
-        .select("*")
-        .eq("user_id", user.id)                      // <-- important: only this user's rows
-        .order("week_start", { ascending: false })
-        .limit(100); // larger so client-side merge doesn't accidentally miss weeks
+    if (isMounted.current) setExpenses(grouped);
+  } catch (err) {
+    console.error("Error fetching weekly expenses:", err);
+  } finally {
+    if (isMounted.current) setLoading(false);
+  }
+};
 
-      if (error) throw error;
-
-      const raw = (data || []) as any[];
-
-      // merge duplicates by week_start and normalize numeric fields
-      const map = new Map<string, WeeklyExpense>();
-      for (const row of raw) {
-        const weekStart = row.week_start;
-        const total_amount = Number(row.total_amount || 0);
-        const item_count = Number(row.item_count || 0);
-
-        if (!map.has(weekStart)) {
-          map.set(weekStart, {
-            id: row.id,
-            week_start: row.week_start,
-            week_end: row.week_end,
-            total_amount,
-            item_count,
-            created_at: row.created_at,
-          });
-        } else {
-          const existing = map.get(weekStart)!;
-          existing.total_amount = Number(existing.total_amount || 0) + total_amount;
-          existing.item_count = Number(existing.item_count || 0) + item_count;
-        }
-      }
-
-      // sort descending by week_start and keep only 8
-      const grouped = Array.from(map.values())
-        .sort((a, b) => b.week_start.localeCompare(a.week_start))
-        .slice(0, 8);
-
-      if (isMounted.current) setExpenses(grouped);
-    } catch (err) {
-      console.error("Error fetching weekly expenses:", err);
-    } finally {
-      if (isMounted.current) setLoading(false);
-    }
-  };
 
   if (loading) {
     return null;
