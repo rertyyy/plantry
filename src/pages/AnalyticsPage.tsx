@@ -168,27 +168,27 @@ export default function AnalyticsPage() {
               const monthlyMap = new Map<string, { total: number; items: number; label: string }>();
               
               (groceries || [])
-                .filter(it => !it.archived && (ONLY_PANTRY ? it.type === 'pantry' : true))
-                .forEach(item => {
-                  const d = item.created_at ? new Date(item.created_at) : item.updated_at ? new Date(item.updated_at) : new Date();
-                  const year = d.getFullYear();
-                  const monthNum = d.getMonth() + 1; // 1..12
-                  const key = `${year}-${String(monthNum).padStart(2, '0')}`; // YYYY-MM
-                  const label = d.toLocaleString('default', { month: 'short', year: 'numeric' }); // e.g. "Sep 2025"
-              
-                  const qty = Number(item.quantity ?? 1) || 1;
-                  const parsedCost = Number(item.cost);
-                  const unitCost = Number.isFinite(parsedCost) ? parsedCost : 0;
-                  const cost = unitCost * qty;
-              
-                  const existing = monthlyMap.get(key);
-                  if (existing) {
-                    existing.total += cost;
-                    existing.items += qty;
-                  } else {
-                    monthlyMap.set(key, { total: cost, items: qty, label });
-                  }
-                });
+              .filter(it => (ONLY_PANTRY ? it.type === 'pantry' : true))
+              .forEach(item => {
+                const d = item.created_at ? new Date(item.created_at) : item.updated_at ? new Date(item.updated_at) : new Date();
+                const year = d.getFullYear();
+                const monthNum = d.getMonth() + 1; // 1..12
+                const key = `${year}-${String(monthNum).padStart(2, '0')}`; // YYYY-MM
+                const label = d.toLocaleString('default', { month: 'short', year: 'numeric' }); // e.g. "Sep 2025"
+            
+                const qty = Number(item.quantity ?? 1) || 1;
+                const parsedCost = Number(item.cost);
+                const unitCost = Number.isFinite(parsedCost) ? parsedCost : 0;
+                const cost = unitCost * qty;
+            
+                const existing = monthlyMap.get(key);
+                if (existing) {
+                  existing.total += cost;
+                  existing.items += qty;
+                } else {
+                  monthlyMap.set(key, { total: cost, items: qty, label });
+                }
+              });
               
               // Convert map -> array, sort chronological (old -> new), keep last N months
               const monthlyArr = Array.from(monthlyMap.entries())
