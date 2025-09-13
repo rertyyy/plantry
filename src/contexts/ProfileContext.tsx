@@ -183,7 +183,7 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children, user
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete profile: " + error.message,
+        description: "Failed to delete profile as user data exists. Please edit the profile instead.",
         variant: "destructive",
       });
     }
