@@ -36,72 +36,98 @@ export default function DashboardPage() {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        navigate("/auth");
-        return;
+      const fetchRealTimeData = async (user: User) => {
+  try {
+    // Fetch non-archived groceries for this user
+    const { data: groceriesRaw, error: groceriesError } = await supabase
+      .from('groceries')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (groceriesError) throw groceriesError;
+    const groceries = (groceriesRaw || []).map((g: any) => ({ ...g, cost: Number(g.cost) || 0, quantity: Number(g.quantity) || 0 }));
+
+    // Fetch weekly_expenses for this user
+    const { data: weeklyRaw, error: weeklyError } = await supabase
+      .from('weekly_expenses')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('week_start', { ascending: false })
+      .limit(7);
+
+    if (weeklyError) throw weeklyError;
+    const weeklyExpenses = (weeklyRaw || []).map((w: any) => ({
+      ...w,
+      total_amount: Number(w.total_amount) || 0,
+      item_count: Number(w.item_count) || 0
+    }));
+
+    // Today (midnight) for comparisons
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Determine which week is current (not frozen) and recalc its totals from groceries.
+    const weeklyExpensesAdjusted = await Promise.all(weeklyExpenses.map(async (week) => {
+      const weekEnd = new Date(week.week_end);
+      weekEnd.setHours(23, 59, 59, 999); // include end of day
+      const weekStart = new Date(week.week_start);
+      weekStart.setHours(0,0,0,0);
+
+      const isFrozen = weekEnd < today; // past week -> frozen
+
+      if (!isFrozen) {
+        // Recalculate current-week totals from groceries (only non-archived items)
+        const itemsThisWeek = (groceries || []).filter((g: any) => {
+          if (!g.created_at) return false;
+          const c = new Date(g.created_at);
+          return c >= weekStart && c <= weekEnd && !g.archived;
+        });
+
+        const recalculatedTotal = itemsThisWeek.reduce((sum: number, i: any) => sum + (Number(i.cost || 0) * (Number(i.quantity || 1))), 0);
+        const recalculatedCount = itemsThisWeek.reduce((sum: number, i: any) => sum + (Number(i.quantity || 1)), 0);
+
+        return { ...week, isFrozen: false, total_amount: recalculatedTotal, item_count: recalculatedCount };
+      } else {
+        // Past week — keep stored total (frozen)
+        return { ...week, isFrozen: true };
       }
-      setUser(user);
-      fetchRealTimeData(user);
-    };
-    checkAuth();
-  }, [navigate]);
+    }));
 
-  const fetchRealTimeData = async (user: User) => {
-    try {
-      // Fetch non-archived groceries data
-      const { data: groceries, error: groceriesError } = await supabase
-        .from('groceries')
-        .select('*')
-        .eq('archived', false)
-        .order('created_at', { ascending: false });
+    // Compute total cost / item count / expiringSoon / recentEntries using groceries
+    const totalCost = (groceries ?? []).reduce((sum: number, item: any) =>
+      item.type === 'pantry' ? sum + Number(item.cost) * Number(item.quantity) : sum, 0);
 
-      if (groceriesError) throw groceriesError;
+    const itemCount = (groceries ?? []).reduce((sum: number, item: any) =>
+      item.type === 'pantry' ? sum + Number(item.quantity) : sum, 0);
 
-      // Fetch weekly expenses
-      const { data: weeklyExpenses, error: expensesError } = await supabase
-        .from('weekly_expenses')
-        .select('*')
-        .order('week_start', { ascending: false })
-        .limit(7);
+    const todayMid = new Date();
+    todayMid.setHours(0,0,0,0);
+    const threeDaysFromNow = new Date(todayMid);
+    threeDaysFromNow.setDate(todayMid.getDate() + 3);
 
-      if (expensesError) throw expensesError;
+    const expiringSoon = (groceries ?? []).filter((item: any) => {
+      if (item.type !== 'pantry') return false;
+      if (!item.expiration_date) return false;
+      const exp = new Date(item.expiration_date);
+      exp.setHours(0,0,0,0);
+      return exp >= todayMid && exp <= threeDaysFromNow;
+    }).length;
 
-      // Calculate stats (only non-archived items)
-      
-        const totalCost = (groceries ?? []).reduce((sum, item) =>
-          item.type === 'pantry' ? sum + Number(item.cost) * Number(item.quantity) : sum, 0);
-        
-        const itemCount = (groceries ?? []).reduce((sum, item) =>
-          item.type === 'pantry' ? sum + Number(item.quantity) : sum, 0);
-      
-      
-      // Calculate expiring soon (only pantry items, non-archived)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const expiringSoon = groceries?.filter(item => {
-        if (item.type !== 'pantry') return false; // Only pantry items
-        
-        const expirationDate = new Date(item.expiration_date);
-        expirationDate.setHours(0, 0, 0, 0);
-        
-        const daysDifference = Math.ceil((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        return daysDifference <= 3 && daysDifference >= 0; // Expires within 3 days but not expired
-      }).length || 0;
+    const recentEntries = (groceries ?? []).slice(0, 5);
 
-      // Get recent entries (last 5, non-archived)
-      const recentEntries = groceries?.slice(0, 5) || [];
-
-      setRealTimeStats({
-        totalCost,
-        itemCount,
-        expiringSoon,
-        weeklyExpenses: weeklyExpenses || [],
-        recentEntries
-      });
-    } catch (error) {
-      console.error('Error fetching real-time data:', error);
-    }
-  };
+    // Update state (use the adjusted weeklyExpenses)
+    setRealTimeStats({
+      totalCost,
+      itemCount,
+      expiringSoon,
+      weeklyExpenses: weeklyExpensesAdjusted,
+      recentEntries
+    });
+  } catch (err) {
+    console.error('fetchRealTimeData failed:', err);
+  }
+};
 
   const stats = [
     {
