@@ -82,52 +82,89 @@ export default function AnalyticsPage() {
     try {
       setLoading(true);
 
-      // Fetch all groceries
-      const { data: groceries, error: groceriesError } = await supabase
+      // ----------------------------
+      // Fetch groceries (only this user, exclude archived)
+      // ----------------------------
+      const { data: groceriesRaw, error: groceriesError } = await supabase
         .from('groceries')
         .select('*')
+        .eq('user_id', user.id)             // <- only this user's groceries
+        .eq('archived', false)              // <- exclude archived
         .order('created_at', { ascending: false });
 
       if (groceriesError) throw groceriesError;
 
-      // Fetch weekly expenses
-      const { data: weeklyExpenses, error: expensesError } = await supabase
+      // Normalize groceries numeric fields
+      const groceries = (groceriesRaw || []).map((g: any) => ({
+        ...g,
+        cost: Number(g.cost) || 0,
+        quantity: Number(g.quantity) || 0,
+        expiration_date: g.expiration_date,
+        created_at: g.created_at,
+        updated_at: g.updated_at,
+        type: g.type,
+      }));
+
+      // ----------------------------
+      // Fetch weekly expenses (only this user) and normalize
+      // ----------------------------
+      const { data: weeklyRaw, error: expensesError } = await supabase
         .from('weekly_expenses')
         .select('*')
+        .eq('user_id', user.id)             // <- only this user's weekly rows
         .order('week_start', { ascending: false })
         .limit(12); // Get last 12 weeks
 
       if (expensesError) throw expensesError;
 
-      // Fetch user settings for budget
+      const weeklyExpenses = (weeklyRaw || []).map((w: any) => ({
+        ...w,
+        total_amount: Number(w.total_amount) || 0,
+        item_count: Number(w.item_count) || 0,
+      }));
+
+      // ----------------------------
+      // Fetch user settings (weekly_budget) for this user
+      // ----------------------------
       const { data: settings, error: settingsError } = await supabase
         .from('user_settings')
         .select('weekly_budget')
+        .eq('user_id', user.id)             // <- only current user's settings
         .single();
 
-      const weeklyBudget = settings?.weekly_budget || 100;
+      if (settingsError && settingsError.code !== 'PGRST116') {
+        // PGRST116 might indicate "No rows" in some setups; ignore if you expect no settings.
+        console.warn('user_settings fetch error', settingsError);
+      }
 
-      // Process weekly spending data
+      const weeklyBudget = settings?.weekly_budget ?? 100;
+
+      // ----------------------------
+      // Process weekly spending data (use normalized weeklyExpenses)
+      // ----------------------------
       const weeklyData = weeklyExpenses?.map(week => ({
         week: new Date(week.week_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        spending: week.total_amount,
+        spending: Number(week.total_amount) || 0,
         budget: weeklyBudget,
-        items: week.item_count
+        items: Number(week.item_count) || 0
       })).reverse() || [];
 
       setWeeklySpending(weeklyData);
 
-      // Process category breakdown
-      const pantryItems = groceries?.filter(item => item.type === 'pantry' && !item.archived) || [];
-      const groceryItems = groceries?.filter(item => item.type === 'grocery' && !item.archived) || [];
+      // ----------------------------
+      // Process category breakdown (use normalized groceries)
+      // ----------------------------
+      const pantryItems = groceries?.filter((item: any) => item.type === 'pantry' && !item.archived) || [];
+      const groceryItems = groceries?.filter((item: any) => item.type === 'grocery' && !item.archived) || [];
       
       setCategoryBreakdown([
-        { name: 'Pantry', value: pantryItems.reduce((sum, item) => sum + (Number(item.cost) * (item.quantity || 1)), 0), count: pantryItems.reduce((sum, item) => sum + (item.quantity || 1), 0) },
-        { name: 'Grocery', value: groceryItems.reduce((sum, item) => sum + (Number(item.cost) * (item.quantity || 1)), 0), count: groceryItems.reduce((sum, item) => sum + (item.quantity || 1), 0) }
+        { name: 'Pantry', value: pantryItems.reduce((sum: number, item: any) => sum + (Number(item.cost) * (Number(item.quantity || 1))), 0), count: pantryItems.reduce((sum: number, item: any) => sum + (Number(item.quantity || 1)), 0) },
+        { name: 'Grocery', value: groceryItems.reduce((sum: number, item: any) => sum + (Number(item.cost) * (Number(item.quantity || 1))), 0), count: groceryItems.reduce((sum: number, item: any) => sum + (Number(item.quantity || 1)), 0) }
       ]);
 
-     
+      // ----------------------------
       // Process expiration data
+      // ----------------------------
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -139,16 +176,18 @@ export default function AnalyticsPage() {
         later: 0
       };
 
-      pantryItems.forEach(item => {
+      pantryItems.forEach((item: any) => {
+        if (!item.expiration_date) return;
         const expirationDate = new Date(item.expiration_date);
         expirationDate.setHours(0, 0, 0, 0);
         const daysDiff = Math.floor((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const qty = Number(item.quantity || 1) || 1;
         
-        if (daysDiff < 0) expirationGroups.expired += (item.quantity || 1);
-        else if (daysDiff === 0) expirationGroups.today += (item.quantity || 1);
-        else if (daysDiff <= 7) expirationGroups.thisWeek += (item.quantity || 1);
-        else if (daysDiff <= 14) expirationGroups.nextWeek += (item.quantity || 1);
-        else expirationGroups.later += (item.quantity || 1);
+        if (daysDiff < 0) expirationGroups.expired += qty;
+        else if (daysDiff === 0) expirationGroups.today += qty;
+        else if (daysDiff <= 7) expirationGroups.thisWeek += qty;
+        else if (daysDiff <= 14) expirationGroups.nextWeek += qty;
+        else expirationGroups.later += qty;
       });
 
       setExpirationData([
@@ -159,95 +198,94 @@ export default function AnalyticsPage() {
         { name: 'Later', value: expirationGroups.later, color: '#10b981' }
       ]);
 
-      
       // ---- REPLACEMENT: robust monthly totals + stats (pantry-only) ----
-              const ONLY_PANTRY = true; // set false to include grocery type too
-              const MONTHS_TO_KEEP = 12;
-              
-              // Build monthly totals grouped by YYYY-MM (reliable sorting key)
-              const monthlyMap = new Map<string, { total: number; items: number; label: string }>();
-              
-              (groceries || [])
-              .filter(it => (ONLY_PANTRY ? it.type === 'pantry' : true))
-              .forEach(item => {
-                const d = item.created_at ? new Date(item.created_at) : item.updated_at ? new Date(item.updated_at) : new Date();
-                const year = d.getFullYear();
-                const monthNum = d.getMonth() + 1; // 1..12
-                const key = `${year}-${String(monthNum).padStart(2, '0')}`; // YYYY-MM
-                const label = d.toLocaleString('default', { month: 'short', year: 'numeric' }); // e.g. "Sep 2025"
-            
-                const qty = Number(item.quantity ?? 1) || 1;
-                const parsedCost = Number(item.cost);
-                const unitCost = Number.isFinite(parsedCost) ? parsedCost : 0;
-                const cost = unitCost * qty;
-            
-                const existing = monthlyMap.get(key);
-                if (existing) {
-                  existing.total += cost;
-                  existing.items += qty;
-                } else {
-                  monthlyMap.set(key, { total: cost, items: qty, label });
-                }
-              });
-              
-              // Convert map -> array, sort chronological (old -> new), keep last N months
-              const monthlyArr = Array.from(monthlyMap.entries())
-                .map(([key, v]) => ({
-                  key,
-                  month: v.label,
-                  total: Math.round((v.total + Number.EPSILON) * 100) / 100,
-                  items: v.items,
-                  average: v.items > 0 ? Math.round(((v.total / v.items) + Number.EPSILON) * 100) / 100 : 0
-                }))
-                .sort((a, b) => a.key.localeCompare(b.key))
-                .slice(-MONTHS_TO_KEEP);
-              
-              // Provide data to chart (chart expects chronological left->right)
-              setMonthlyTrends(monthlyArr);
-              
-              // Compute current month key and entry for the stat card
-              const currentMonthKey = new Date().toISOString().slice(0, 7); // "YYYY-MM"
-              const currentMonthEntry = monthlyArr.find(m => m.key === currentMonthKey) ?? { total: 0, average: 0, items: 0 };
-              const monthlyTotal = currentMonthEntry.total;
-              const currentMonthLabel = currentMonthEntry.month || new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
-              
-              // Recompute / compute statistics (safe numeric parsing, round to cents where useful)
-              const totalSpent = (groceries || []).reduce((sum, item) => {
-                const qty = Number(item.quantity ?? 1) || 1;
-                const parsed = Number(item.cost);
-                const unit = Number.isFinite(parsed) ? parsed : 0;
-                return sum + unit * qty;
-              }, 0);
-              
-              const totalWeeksRecorded = weeklyExpenses?.length || 1;
-              const avgWeeklySpend = (weeklyExpenses?.reduce((sum, w) => sum + (w.total_amount || 0), 0) || 0) / totalWeeksRecorded;
-              
-              const mostExpensive = (groceries || []).reduce((max, item) => {
-                const unitPrice = Number(item.cost ?? 0);
-                return unitPrice > max.cost ? { name: item.name || "", cost: unitPrice } : max;
-              }, { name: "", cost: 0 });
-              
-              const budgetCompliance = weeklyExpenses?.filter(week => (week.total_amount || 0) <= weeklyBudget).length || 0;
-              const totalWeeks = weeklyExpenses?.length || 1;
-              
-              setStatistics({
-                // keep totalSpent available if you still need it elsewhere
-                totalSpent,
-                // new monthly-specific stat values
-                monthlyTotal: monthlyTotal ?? 0,
-                currentMonthLabel: currentMonthLabel ?? '',
-                averageWeeklySpend: avgWeeklySpend,
-                mostExpensiveItem: mostExpensive,
-                totalItems: groceries?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0,
-                pantryItems: pantryItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
-                groceryItems: groceryItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
-                expiredItems: expirationGroups.expired,
-                expiringThisWeek: expirationGroups.thisWeek + expirationGroups.today,
-                averageItemCost: (groceries?.length ?? 0) > 0 ? Math.round(((totalSpent / (groceries.reduce((s, i) => s + (i.quantity || 1), 0) || 1)) + Number.EPSILON) * 100) / 100 : 0,
-                budgetCompliance: (budgetCompliance / totalWeeks) * 100,
-                weeklyBudget
-              });
-              // ---- end replacement ----
+      const ONLY_PANTRY = true; // set false to include grocery type too
+      const MONTHS_TO_KEEP = 12;
+      
+      // Build monthly totals grouped by YYYY-MM (reliable sorting key)
+      const monthlyMap = new Map<string, { total: number; items: number; label: string }>();
+      
+      (groceries || [])
+      .filter((it: any) => (ONLY_PANTRY ? it.type === 'pantry' : true))
+      .forEach((item: any) => {
+        const d = item.created_at ? new Date(item.created_at) : item.updated_at ? new Date(item.updated_at) : new Date();
+        const year = d.getFullYear();
+        const monthNum = d.getMonth() + 1; // 1..12
+        const key = `${year}-${String(monthNum).padStart(2, '0')}`; // YYYY-MM
+        const label = d.toLocaleString('default', { month: 'short', year: 'numeric' }); // e.g. "Sep 2025"
+    
+        const qty = Number(item.quantity ?? 1) || 1;
+        const parsedCost = Number(item.cost);
+        const unitCost = Number.isFinite(parsedCost) ? parsedCost : 0;
+        const cost = unitCost * qty;
+    
+        const existing = monthlyMap.get(key);
+        if (existing) {
+          existing.total += cost;
+          existing.items += qty;
+        } else {
+          monthlyMap.set(key, { total: cost, items: qty, label });
+        }
+      });
+      
+      // Convert map -> array, sort chronological (old -> new), keep last N months
+      const monthlyArr = Array.from(monthlyMap.entries())
+        .map(([key, v]) => ({
+          key,
+          month: v.label,
+          total: Math.round((v.total + Number.EPSILON) * 100) / 100,
+          items: v.items,
+          average: v.items > 0 ? Math.round(((v.total / v.items) + Number.EPSILON) * 100) / 100 : 0
+        }))
+        .sort((a, b) => a.key.localeCompare(b.key))
+        .slice(-MONTHS_TO_KEEP);
+      
+      // Provide data to chart (chart expects chronological left->right)
+      setMonthlyTrends(monthlyArr);
+      
+      // Compute current month key and entry for the stat card
+      const currentMonthKey = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+      const currentMonthEntry = monthlyArr.find(m => m.key === currentMonthKey) ?? { total: 0, average: 0, items: 0 };
+      const monthlyTotal = currentMonthEntry.total;
+      const currentMonthLabel = currentMonthEntry.month || new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
+      
+      // Recompute / compute statistics (safe numeric parsing, round to cents where useful)
+      const totalSpent = (groceries || []).reduce((sum: number, item: any) => {
+        const qty = Number(item.quantity ?? 1) || 1;
+        const parsed = Number(item.cost);
+        const unit = Number.isFinite(parsed) ? parsed : 0;
+        return sum + unit * qty;
+      }, 0);
+      
+      const totalWeeksRecorded = weeklyExpenses?.length || 1;
+      const avgWeeklySpend = ((weeklyExpenses || []).reduce((sum: number, w: any) => sum + (Number(w.total_amount) || 0), 0) || 0) / totalWeeksRecorded;
+      
+      const mostExpensive = (groceries || []).reduce((max: any, item: any) => {
+        const unitPrice = Number(item.cost ?? 0);
+        return unitPrice > max.cost ? { name: item.name || "", cost: unitPrice } : max;
+      }, { name: "", cost: 0 });
+      
+      const budgetCompliance = (weeklyExpenses || []).filter((week: any) => (Number(week.total_amount) || 0) <= weeklyBudget).length || 0;
+      const totalWeeks = (weeklyExpenses || []).length || 1;
+      
+      setStatistics({
+        // keep totalSpent available if you still need it elsewhere
+        totalSpent,
+        // new monthly-specific stat values
+        monthlyTotal: monthlyTotal ?? 0,
+        currentMonthLabel: currentMonthLabel ?? '',
+        averageWeeklySpend: avgWeeklySpend,
+        mostExpensiveItem: mostExpensive,
+        totalItems: (groceries || []).reduce((sum: number, item: any) => sum + (Number(item.quantity || 1)), 0),
+        pantryItems: pantryItems.reduce((sum: number, item: any) => sum + (Number(item.quantity || 1)), 0),
+        groceryItems: groceryItems.reduce((sum: number, item: any) => sum + (Number(item.quantity || 1)), 0),
+        expiredItems: expirationGroups.expired,
+        expiringThisWeek: expirationGroups.thisWeek + expirationGroups.today,
+        averageItemCost: (groceries?.length ?? 0) > 0 ? Math.round(((totalSpent / (groceries.reduce((s: number, i: any) => s + (Number(i.quantity || 1)), 0) || 1)) + Number.EPSILON) * 100) / 100 : 0,
+        budgetCompliance: (budgetCompliance / totalWeeks) * 100,
+        weeklyBudget
+      });
+      // ---- end replacement ----
       
     } catch (error) {
       console.error('Error fetching analytics data:', error);
@@ -520,4 +558,3 @@ export default function AnalyticsPage() {
       </div>
     );
   }
-
