@@ -481,8 +481,15 @@ const monthlyTrends = (groceries || []).reduce((acc, item) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">${statistics.averageItemCost.toFixed(2)}</p>
-                <p className="text-sm text-muted-foreground">Per item across all categories</p>
+                <p className="text-2xl font-bold">
+                  ${(
+                    ([...pantryItems, ...groceryItems].reduce((sum, item) => sum + item.cost * item.quantity, 0)) /
+                    ([...pantryItems, ...groceryItems].reduce((sum, item) => sum + item.quantity, 0) || 1)
+                  ).toFixed(2)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Per item across all categories
+                </p>
               </CardContent>
             </Card>
           </div>
