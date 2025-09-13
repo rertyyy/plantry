@@ -26,61 +26,41 @@ export default function WeeklyExpensesChart({ user }: WeeklyExpensesChartProps) 
   }, [user]);
 
   const fetchWeeklyExpenses = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("groceries")
-      .select("*")
-      .eq("archived", false); // ✅ only active groceries
+    try {
+      const { data, error } = await supabase
+        .from("weekly_expenses")
+        .select("*")
+        .order("week_start", { ascending: false })
+        .limit(16); // fetch a few more to allow deduplication
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const groceries = data || [];
+      const raw = (data || []) as WeeklyExpense[];
 
-    // ✅ Group groceries into weekly totals
-    const weeklyMap = new Map<string, WeeklyExpense>();
-
-    for (const item of groceries) {
-      if (item.type !== "pantry") continue; // only pantry items count
-
-      const created = new Date(item.created_at);
-      const startOfWeek = new Date(created);
-      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Sunday
-      startOfWeek.setHours(0, 0, 0, 0);
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(endOfWeek.getDate() + 6);
-
-      const key = startOfWeek.toISOString();
-
-      const cost = Number(item.cost) * Number(item.quantity || 1);
-
-      if (!weeklyMap.has(key)) {
-        weeklyMap.set(key, {
-          id: key, // no db id, so use week key
-          week_start: startOfWeek.toISOString(),
-          week_end: endOfWeek.toISOString(),
-          total_amount: cost,
-          item_count: Number(item.quantity || 1),
-          created_at: item.created_at,
-        });
-      } else {
-        const existing = weeklyMap.get(key)!;
-        existing.total_amount += cost;
-        existing.item_count += Number(item.quantity || 1);
+      // ✅ merge duplicates by week_start
+      const map = new Map<string, WeeklyExpense>();
+      for (const row of raw) {
+        if (!map.has(row.week_start)) {
+          map.set(row.week_start, { ...row });
+        } else {
+          const existing = map.get(row.week_start)!;
+          existing.total_amount += Number(row.total_amount || 0);
+          existing.item_count += Number(row.item_count || 0);
+        }
       }
+
+      // sort descending by week_start and keep only 8
+      const grouped = Array.from(map.values())
+        .sort((a, b) => b.week_start.localeCompare(a.week_start))
+        .slice(0, 8);
+
+      setExpenses(grouped);
+    } catch (error) {
+      console.error("Error fetching weekly expenses:", error);
+    } finally {
+      setLoading(false);
     }
-
-    const grouped = Array.from(weeklyMap.values())
-      .sort((a, b) => b.week_start.localeCompare(a.week_start))
-      .slice(0, 8);
-
-    setExpenses(grouped);
-  } catch (error) {
-    console.error("Error fetching weekly expenses:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (loading) {
     return null;
