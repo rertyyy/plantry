@@ -34,22 +34,29 @@ export default function DashboardPage() {
   useEffect(() => {
     // Check authentication
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-  navigate("/login");
-  return;
-}
-      const fetchRealTimeData = async (user: User) => {
-  try {
-    // Fetch non-archived groceries for this user
-    const { data: groceriesRaw, error: groceriesError } = await supabase
-      .from('groceries')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+  const { data } = await supabase.auth.getUser();
+  const currentUser = data?.user ?? null;
 
-    if (groceriesError) throw groceriesError;
-    const groceries = (groceriesRaw || []).map((g: any) => ({ ...g, cost: Number(g.cost) || 0, quantity: Number(g.quantity) || 0 }));
+  if (!currentUser) {
+    navigate("/login");
+    return;
+  }
+
+  // save to state so the rest of the component can use it
+  setUser(currentUser);
+
+  // define fetchRealTimeData (you can keep your existing body here)
+  const fetchRealTimeData = async (user: User) => {
+    try {
+      // --- keep the exact body you already have here ---
+      const { data: groceriesRaw, error: groceriesError } = await supabase
+        .from('groceries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (groceriesError) throw groceriesError;
+      const groceries = (groceriesRaw || []).map((g: any) => ({ ...g, cost: Number(g.cost) || 0, quantity: Number(g.quantity) || 0 }));
 
     // Fetch weekly_expenses for this user
     const { data: weeklyRaw, error: weeklyError } = await supabase
@@ -128,10 +135,13 @@ export default function DashboardPage() {
       recentEntries
     });
   } catch (err) {
-    console.error('fetchRealTimeData failed:', err);
-  }
+      console.error('fetchRealTimeData failed:', err);
+    }
+  };
+
+  // —> actually run it:
+  await fetchRealTimeData(currentUser);
 };
-}
       checkAuth();
 }, []);
   const stats = [
