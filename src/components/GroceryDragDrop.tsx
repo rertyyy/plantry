@@ -407,13 +407,13 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
 
     if (groceryError) throw groceryError;
 
-    // Also delete related weekly_expenses (adjust filters if needed)
+    // Delete related weekly_expenses for the week that includes this grocery's created_at
     const { error: weeklyError } = await supabase
       .from('weekly_expenses')
       .delete()
       .eq('user_id', user.id)
-      .gte('week_start', editingItem.expiration_date)
-      .lte('week_end', editingItem.expiration_date);
+      .gte('week_start', editingItem.created_at)
+      .lte('week_end', editingItem.created_at);
 
     if (weeklyError) throw weeklyError;
 
@@ -423,7 +423,9 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
 
     setEditingItem(null);
     setEditForm({ name: '', cost: '', quantity: '1', expiration_date: '' });
-await fetchRealTimeData(user); // after successful deletes
+
+    // Refresh dashboard stats
+    await fetchRealTimeData(user);
 
     toast({
       title: "Item deleted",
