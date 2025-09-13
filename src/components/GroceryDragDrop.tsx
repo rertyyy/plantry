@@ -347,36 +347,47 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
   };
 
   const handleDeleteItem = async () => {
-    if (!editingItem) return;
+  if (!editingItem) return;
 
-    try {
-      const { error } = await supabase
-        .from('groceries')
-        .delete()
-        .eq('id', editingItem.id);
+  try {
+    // Delete the grocery item
+    const { error: groceryError } = await supabase
+      .from('groceries')
+      .delete()
+      .eq('id', editingItem.id);
 
-      if (error) throw error;
+    if (groceryError) throw groceryError;
 
-      // Update local state
-      setItems(items.filter(item => item.id !== editingItem.id));
-      setAllItems(allItems.filter(item => item.id !== editingItem.id));
+    // Also delete related weekly_expenses (adjust filters if needed)
+    const { error: weeklyError } = await supabase
+      .from('weekly_expenses')
+      .delete()
+      .eq('user_id', user.id)
+      .gte('week_start', editingItem.expiration_date)
+      .lte('week_end', editingItem.expiration_date);
 
-      setEditingItem(null);
-      setEditForm({ name: '', cost: '', quantity: '1', expiration_date: '' });
+    if (weeklyError) throw weeklyError;
 
-      toast({
-        title: "Item deleted",
-        description: `${editingItem.name} has been permanently deleted.`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to delete item: " + error.message,
-        variant: "destructive",
-      });
-    }
-  };
+    // Update local state
+    setItems(items.filter(item => item.id !== editingItem.id));
+    setAllItems(allItems.filter(item => item.id !== editingItem.id));
 
+    setEditingItem(null);
+    setEditForm({ name: '', cost: '', quantity: '1', expiration_date: '' });
+
+    toast({
+      title: "Item deleted",
+      description: `${editingItem.name} has been permanently deleted (including weekly expenses).`,
+    });
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: "Failed to delete item: " + error.message,
+      variant: "destructive",
+    });
+  }
+};
+  
   const handleCancelEdit = () => {
     setEditingItem(null);
     setEditForm({ name: '', cost: '', quantity: '1', expiration_date: '' });
