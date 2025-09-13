@@ -826,6 +826,7 @@ export default function InsightsPage() {
                 </div>
                 <div className="text-3xl font-bold text-foreground mb-2">
                   {groceryData.expiredItemsThisWeek}
+                  </div>
               </CardContent>
             </Card>
 
