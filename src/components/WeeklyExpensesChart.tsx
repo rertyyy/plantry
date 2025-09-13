@@ -87,11 +87,20 @@ export default function WeeklyExpensesChart({ user }: WeeklyExpensesChartProps) 
     }
 
     // sort descending by week_start and keep only 8
-    const grouped = Array.from(map.values())
-      .sort((a, b) => b.week_start.localeCompare(a.week_start))
-      .slice(0, 8);
+    const now = new Date();
 
-    if (isMounted.current) setExpenses(grouped);
+const grouped = Array.from(map.values())
+  .sort((a, b) => b.week_start.localeCompare(a.week_start))
+  .slice(0, 8)
+  .map(week => ({
+    ...week,
+    isFrozen: new Date(week.week_end) < now, // mark past weeks as frozen
+    total_amount: Number(week.total_amount), // normalize
+    item_count: Number(week.item_count)
+  }));
+
+if (isMounted.current) setExpenses(grouped);
+
   } catch (err) {
     console.error("Error fetching weekly expenses:", err);
   } finally {
