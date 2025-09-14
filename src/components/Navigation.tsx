@@ -228,99 +228,98 @@ export const Navigation = () => {
         </div>
       </div>
 
-      {/* Minimal addition: mobile collapsible menu (placed outside top bar so desktop remains untouched) */}
-     {/* Mobile full-screen menu (replace your existing isMenuOpen block with this) */}
+     {/* ---------- MOBILE MENU (ONLY this block changed) ---------- */}
 {isMenuOpen && (
-  <div className="md:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm mobile-menu overflow-hidden">
-    {/* Header with close X */}
-    <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-      <div className="flex items-center space-x-2">
-        <img src="/favicon.ico" alt="favicon" className="w-6 h-6" />
-        <h1 className="text-lg font-semibold text-foreground">Plantry</h1>
-      </div>
-      <button
-        onClick={() => setIsMenuOpen(false)}
-        className="p-2 mobile-menu-toggle"
-        aria-label="Close menu"
-        type="button"
-      >
-        <X className="w-6 h-6" />
-      </button>
-    </div>
-
-    {/* Centered nav items */}
-    <div className="h-[calc(100vh-128px)] flex flex-col items-center justify-center px-6"> 
-      {/* primary nav items (no icons, centered, larger, black) */}
-      {navItems.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
+  <div className="md:hidden fixed inset-0 z-50 mobile-menu bg-white">
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+        <div className="flex items-center space-x-2">
+          <img src="/favicon.ico" alt="favicon" className="w-6 h-6" />
+          <h1 className="text-lg font-semibold text-foreground">Plantry</h1>
+        </div>
+        <button
           onClick={() => setIsMenuOpen(false)}
-          className={({ isActive }) =>
-            `block w-full text-center py-3 text-xl font-medium ${
-              isActive ? "font-semibold text-black" : "text-black"
-            }`
-          }
+          className="p-2 mobile-menu-toggle"
+          aria-label="Close menu"
+          type="button"
         >
-          {item.label}
-        </NavLink>
-      ))}
+          <X className="w-6 h-6" />
+        </button>
+      </div>
 
-      {/* logged-in extra pages (analytics, insights, settings, preferences) */}
-      {user && (
-        <>
+      {/* Content: nav items. This area is scrollable if content overflows but background page is locked. */}
+      <div className="flex-1 overflow-auto px-6 pt-12 pb-6 flex flex-col items-center">
+        {/* primary nav items (slightly raised; reduced vertical padding to fix "Home" feeling low) */}
+        <div className="w-full max-w-md">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                `block text-center py-2 text-2xl font-medium ${
+                  isActive ? "font-semibold text-black" : "text-black"
+                }`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* logged-in extra pages */}
+        {user && (
           <div className="mt-6 w-full max-w-md">
-            <hr className="border-border" />
+            <hr className="border-border mb-4" />
+            <div className="space-y-2">
+              {[
+                { to: "/analytics", label: "Analytics" },
+                { to: "/insights", label: "Insights" },
+                { to: "/settings", label: "Settings" },
+                { to: "/preferences", label: "Preferences" },
+              ].map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block text-center py-2 text-2xl font-medium ${
+                      isActive ? "font-semibold text-black" : "text-black"
+                    }`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
           </div>
+        )}
+      </div>
 
-          <div className="mt-4 space-y-2 w-full">
-            {[
-              { to: "/analytics", label: "Analytics" },
-              { to: "/insights", label: "Insights" },
-              { to: "/settings", label: "Settings" },
-              { to: "/preferences", label: "Preferences" },
-            ].map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setIsMenuOpen(false)}
-                className={({ isActive }) =>
-                  `block w-full text-center py-3 text-xl font-medium ${
-                    isActive ? "font-semibold text-black" : "text-black"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-
-    {/* Bottom area with Logout (for logged-in users) or Sign In button */}
-          <div className="px-6 pb-8 flex justify-center">
-            {user ? (
-              <button
-                onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
-                className="bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md"
-              >
-                Logout
-              </button>
-            ) : (
-              <NavLink
-                to="/auth"
-                onClick={() => setIsMenuOpen(false)}
-                className="block bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md text-center"
-              >
-                Sign In
-              </NavLink>
-            )}
-          </div>
-      )}
+      {/* Footer: Sign In / Logout pinned to bottom and full width (won't overlap content) */}
+      <div className="px-6 pb-8 pt-2">
+        {user ? (
+          <button
+            onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+            className="bg-black text-white rounded-lg px-6 py-3 text-lg w-full max-w-md mx-auto block"
+          >
+            Logout
+          </button>
+        ) : (
+          <NavLink
+            to="/auth"
+            onClick={() => setIsMenuOpen(false)}
+            className="block bg-black text-white rounded-lg px-6 py-3 text-lg w-full max-w-md text-center mx-auto"
+          >
+            Sign In
+          </NavLink>
+        )}
+      </div>
     </div>
   </div>
 )}
-    </nav>
+{/* ---------- end mobile menu block ---------- */}
+        </nav>
   );
 };
