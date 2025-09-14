@@ -6,6 +6,8 @@ import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/contexts/ProfileContext";
+import { CircuitBoard, ChartPie } from "lucide-react";
+
 
 export const Navigation = () => {
   const navigate = useNavigate();
