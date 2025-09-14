@@ -269,49 +269,47 @@ export default function Homepage() {
       </section>
 
       {/* Intelligence Showcase */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="animate-slide-in-left">
-              <h2 className="text-4xl font-bold text-foreground mb-6">
-                Intelligence that adapts<br />
-                <span className="text-primary">to your lifestyle.</span>
-              </h2>
-              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                Advanced machine learning algorithms continuously analyze your shopping patterns, 
-                dietary preferences, and consumption habits to deliver personalized insights.
-              </p>
-              
-              <div className="space-y-8">
-                {[{
-                title: "89% Waste Reduction",
-                description: "Our intelligent tracking system helps users reduce food waste by nearly 90% through smart expiration monitoring and consumption pattern analysis."
-              }, {
-                title: "150+ Countries",
-                description: "Trusted globally with users across six continents, adapting to local shopping habits, currencies, and dietary preferences worldwide."
-              }, {
-                title: "99.9% Uptime",
-                description: "Enterprise-grade infrastructure ensures your grocery data is always accessible when you need it, with industry-leading reliability standards."
-              }].map((item, index) => <div key={index} className="flex items-start space-x-4 animate-fade-in" style={{
-                animationDelay: `${index * 0.2}s`
-              }}>
-                    <div className="w-3 h-3 bg-primary rounded-full mt-3 flex-shrink-0"></div>
-                    <div>
-                      <h3 className="font-bold text-foreground mb-2 text-lg">{item.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{item.description}</p>
-                    </div>
-                  </div>)}
-              </div>
+<section className="py-24 px-4 sm:px-6 lg:px-8">
+  <div className="max-w-7xl mx-auto">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div className="animate-slide-in-left">
+        <h2 className="text-4xl font-bold text-foreground mb-6">
+          Intelligence that adapts<br />
+          <span className="text-primary">to your lifestyle.</span>
+        </h2>
+        <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+          Advanced machine learning algorithms continuously analyze your shopping patterns, 
+          dietary preferences, and consumption habits to deliver personalized insights.
+        </p>
+        
+        <div className="space-y-8">
+          {[{
+            title: "89% Waste Reduction",
+            description: "Our intelligent tracking system helps users reduce food waste by nearly 90% through smart expiration monitoring and consumption pattern analysis."
+          }, {
+            title: "150+ Countries",
+            description: "Trusted globally with users across six continents, adapting to local shopping habits, currencies, and dietary preferences worldwide."
+          }, {
+            title: "99.9% Uptime",
+            description: "Enterprise-grade infrastructure ensures your grocery data is always accessible when you need it, with industry-leading reliability standards."
+          }].map((item, index) => (
+            <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
+              <h3 className="font-bold text-foreground mb-2 text-lg">{item.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">{item.description}</p>
             </div>
-            
-            <div className="animate-slide-in-right">
-              <div className="apple-card p-8 rounded-3xl shadow-2xl hover-scale">
-                <img src={freshGroceries} alt="Smart Grocery Organization" className="w-full h-auto rounded-2xl" />
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </div>
+      
+      <div className="animate-slide-in-right hidden sm:block">
+        <div className="apple-card p-8 rounded-3xl shadow-2xl hover-scale">
+          <img src={freshGroceries} alt="Smart Grocery Organization" className="w-full h-auto rounded-2xl" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       {/* Analytics Showcase */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-secondary">
