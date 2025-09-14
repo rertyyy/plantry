@@ -336,34 +336,34 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-surface-secondary border-r border-border min-h-screen">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-foreground mb-6">Dashboard</h2>
-            
-            <nav className="space-y-2">
-              {[
-                { name: "Overview", path: "/dashboard", icon: Home },
-                { name: "Analytics", path: "/analytics", icon: BarChart3, active: true },
-                { name: "Insights", path: "/insights", icon: Activity },
-                { name: "Settings", path: "/settings", icon: Settings }
-              ].map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => navigate(item.path)}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-3 ${
-                    item.active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-surface-tertiary hover:text-foreground"
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
+        {/* Sidebar (hidden on mobile, visible md+) */}
+<div className="hidden md:block w-64 bg-surface-secondary border-r border-border min-h-screen">
+  <div className="p-6">
+    <h2 className="text-xl font-semibold text-foreground mb-6">Dashboard</h2>
+    
+    <nav className="space-y-2">
+      {[
+        { name: "Overview", path: "/dashboard", icon: Home, active: true },
+        { name: "Analytics", path: "/analytics", icon: BarChart3, active: false },
+        { name: "Insights", path: "/insights", icon: Activity, active: false },
+        { name: "Settings", path: "/settings", icon: Settings, active: false }
+      ].map((item) => (
+        <button
+          key={item.name}
+          onClick={() => navigate(item.path)}
+          className={`w-full text-left px-4 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-3 ${
+            item.active
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-surface-tertiary hover:text-foreground"
+          }`}
+        >
+          <item.icon className="w-5 h-5" />
+          <span>{item.name}</span>
+        </button>
+      ))}
+    </nav>
+  </div>
+</div>
 
         {/* Main Content */}
         <div className="flex-1 p-8">
