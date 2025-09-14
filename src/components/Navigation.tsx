@@ -250,9 +250,8 @@ export const Navigation = () => {
         <hr className="border-border my-1" />
         <div className="pt-1 space-y-1">
           {[
-            { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
-            { to: "/analytics", icon: BarChart3, label: "Analytics" },
-            { to: "/insights", icon: BarChart3, label: "Insights" },
+            { to: "/analytics", icon: CircuitBoard, label: "Analytics" },
+            { to: "/insights", icon: ChartPie, label: "Insights" },
             { to: "/settings", icon: Settings, label: "Settings" },
             { to: "/preferences", icon: Palette, label: "Preferences" },
           ].map((item) => (
