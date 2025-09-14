@@ -147,44 +147,49 @@ export default function Homepage() {
   }];
   return <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-surface to-surface-secondary"></div>
-        <div className="relative max-w-7xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in">
-            <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground font-medium mb-4 animate-slide-in-left">
-              <Award className="w-4 h-4" />
-              <span>Award-Winning Grocery Management</span>
-            </div>
-            <h1 className="text-4xl sm:text-6xl font-bold mb-6 tracking-tight leading-tight animate-fade-in-up text-black">
-              The most advanced grocery<br />
-              management system ever created.
-            </h1>
-            <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
-              Precision-engineered AI technology meets intuitive design. Track inventory, optimize nutrition, and reduce waste with unprecedented accuracy.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-scale-in">
-              <Link to="/profile-selector" className="px-8 py-4 rounded-full text-lg font-medium hover-lift flex items-center space-x-2 text-white font-semibold transition-all duration-200 hover:opacity-90" style={{
-              backgroundColor: '#0077ff'
-            }}>
-                <span>Get started</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <button className="apple-button-secondary px-8 py-4 rounded-full text-lg font-medium hover-lift flex items-center space-x-2">
-                <PlayCircle className="w-5 h-5" />
-                <span>Watch demo</span>
-              </button>
-            </div>
+<section className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+  <div className="absolute inset-0 bg-gradient-to-br from-surface to-surface-secondary"></div>
+  <div className="relative max-w-7xl mx-auto">
+    <div className="text-center mb-16 animate-fade-in">
+      <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground font-medium mb-4 animate-slide-in-left">
+        <Award className="w-4 h-4" />
+        <span>Award-Winning Grocery Management</span>
+      </div>
+      <h1 className="text-4xl sm:text-6xl font-bold mb-6 tracking-tight leading-tight animate-fade-in-up text-black">
+        The most advanced grocery<br />
+        management system ever created.
+      </h1>
+      <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
+        Precision-engineered AI technology meets intuitive design. Track inventory, optimize nutrition, and reduce waste with unprecedented accuracy.
+      </p>
+      
+      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-scale-in">
+        <Link
+          to="/profile-selector"
+          className="px-8 py-4 rounded-full text-lg font-medium hover-lift text-white font-semibold transition-all duration-200 hover:opacity-90 flex justify-center sm:flex-row sm:items-center sm:space-x-2"
+          style={{ backgroundColor: '#0077ff' }}
+        >
+          <span>Get started</span>
+          {/* Hide icon on mobile */}
+          <ArrowRight className="w-5 h-5 hidden sm:inline-block" />
+        </Link>
 
-            {/* Hero Visual */}
-            <div className="max-w-5xl mx-auto animate-fade-in-up">
-              <div className="glass-card rounded-3xl p-6 shadow-2xl animate-float">
-                <img src={spendingChartHero} alt="Modern Spending Chart Dashboard" className="w-full h-auto rounded-2xl" />
-              </div>
-            </div>
-          </div>
+        <button className="apple-button-secondary px-8 py-4 rounded-full text-lg font-medium hover-lift flex justify-center sm:flex-row sm:items-center sm:space-x-2">
+          {/* Hide icon on mobile */}
+          <PlayCircle className="w-5 h-5 hidden sm:inline-block" />
+          <span>Watch demo</span>
+        </button>
+      </div>
+
+      {/* Hero Visual - hide on mobile */}
+      <div className="max-w-5xl mx-auto animate-fade-in-up hidden sm:block">
+        <div className="glass-card rounded-3xl p-6 shadow-2xl animate-float">
+          <img src={spendingChartHero} alt="Modern Spending Chart Dashboard" className="w-full h-auto rounded-2xl" />
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Stats Section */}
       
