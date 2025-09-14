@@ -180,23 +180,26 @@ export const Navigation = () => {
                         className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-secondary transition-colors flex items-center space-x-2"
                       >
                         <Palette className="w-4 h-4" />
-                        <span>Preferences</span>
-                      </button>
-                      <button
-                        onClick={handleSettings}
-                        className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-secondary transition-colors flex items-center space-x-2"
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span>Settings</span>
-                      </button>
-                      <hr className="my-1 border-border" />
-                      <button
-                        onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-secondary transition-colors flex items-center space-x-2"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
+                          <span>Preferences</span>
+                          </button>
+                          <button
+                            onClick={handleSettings}
+                            className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-secondary transition-colors flex items-center space-x-2"
+                          >
+                            <Settings className="w-4 h-4" />
+                            <span>Settings</span>
+                          </button>
+                          <hr className="my-1 border-border" />
+                          {/* Add a margin-top wrapper around logout */}
+                          <div className="mt-4">
+                            <button
+                              onClick={handleSignOut}
+                              className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-secondary transition-colors flex items-center space-x-2"
+                            >
+                              <LogOut className="w-4 h-4" />
+                              <span>Logout</span>
+                            </button>
+                          </div>
                     </div>
                   </div>
                 )}
