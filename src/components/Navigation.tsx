@@ -226,72 +226,98 @@ export const Navigation = () => {
       </div>
 
       {/* Minimal addition: mobile collapsible menu (placed outside top bar so desktop remains untouched) */}
-      {/* Mobile collapsible menu (replace your existing isMenuOpen block with this) */}
+     {/* Mobile full-screen menu (replace your existing isMenuOpen block with this) */}
 {isMenuOpen && (
-  <div className="md:hidden bg-surface border-t border-border px-4 pb-4 space-y-2 mobile-menu">
-    {/* primary nav items (existing) */}
-    {navItems.map((item) => (
-      <NavLink
-        key={item.to}
-        to={item.to}
-        onClick={() => setIsMenuOpen(false)}
-        className={({ isActive }) =>
-          `flex items-center py-2 text-sm font-medium ${
-            isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-          }`
-        }
-      >
-        <item.icon className="w-4 h-4 mr-2" />
-        {item.label}
-      </NavLink>
-    ))}
-
-    {/* for logged-in users: add sidebar items (dashboard, analytics, insights, settings, preferences) */}
-    {user && (
-      <>
-        <hr className="border-border my-1" />
-        <div className="pt-1 space-y-1">
-          {[
-            { to: "/analytics", icon: CircuitBoard, label: "Analytics" },
-            { to: "/insights", icon: ChartPie, label: "Insights" },
-            { to: "/settings", icon: Settings, label: "Settings" },
-            { to: "/preferences", icon: Palette, label: "Preferences" },
-          ].map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={() => setIsMenuOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center py-2 text-sm font-medium ${
-                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                }`
-              }
-            >
-              <item.icon className="w-4 h-4 mr-2" />
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
-      </>
-    )}
-
-    {/* auth / logout (existing, unchanged behavior) */}
-    {user ? (
+  <div className="md:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm mobile-menu overflow-hidden">
+    {/* Header with close X */}
+    <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+      <div className="flex items-center space-x-2">
+        <img src="/favicon.ico" alt="favicon" className="w-6 h-6" />
+        <h1 className="text-lg font-semibold text-foreground">Plantry</h1>
+      </div>
       <button
-        onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
-        className="w-full text-left py-2 text-sm text-foreground hover:text-primary"
-      >
-        Logout
-      </button>
-    ) : (
-      <NavLink
-        to="/auth"
         onClick={() => setIsMenuOpen(false)}
-        className="block py-2 text-sm font-medium text-primary"
+        className="p-2 mobile-menu-toggle"
+        aria-label="Close menu"
+        type="button"
       >
-        Sign In
-      </NavLink>
-    )}
+        <X className="w-6 h-6" />
+      </button>
+    </div>
+
+    {/* Centered nav items */}
+    <div className="h-[calc(100vh-128px)] flex flex-col items-center justify-center px-6"> 
+      {/* primary nav items (no icons, centered, larger, black) */}
+      {navItems.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          onClick={() => setIsMenuOpen(false)}
+          className={({ isActive }) =>
+            `block w-full text-center py-3 text-xl font-medium ${
+              isActive ? "font-semibold text-black" : "text-black"
+            }`
+          }
+        >
+          {item.label}
+        </NavLink>
+      ))}
+
+      {/* logged-in extra pages (analytics, insights, settings, preferences) */}
+      {user && (
+        <>
+          <div className="mt-6 w-full max-w-md">
+            <hr className="border-border" />
+          </div>
+
+          <div className="mt-4 space-y-2 w-full">
+            {[
+              { to: "/analytics", label: "Analytics" },
+              { to: "/insights", label: "Insights" },
+              { to: "/settings", label: "Settings" },
+              { to: "/preferences", label: "Preferences" },
+            ].map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsMenuOpen(false)}
+                className={({ isActive }) =>
+                  `block w-full text-center py-3 text-xl font-medium ${
+                    isActive ? "font-semibold text-black" : "text-black"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+
+    {/* Bottom area with Logout (for logged-in users) or Sign In button */}
+    <div className="relative">
+      {user ? (
+        <div className="absolute left-0 right-0 bottom-6 flex justify-center px-6">
+          <button
+            onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+            className="bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md"
+          >
+            Logout
+          </button>
+        </div>
+      ) : (
+        <div className="absolute left-0 right-0 bottom-6 flex justify-center px-6">
+          <NavLink
+            to="/auth"
+            onClick={() => setIsMenuOpen(false)}
+            className="block bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md text-center"
+          >
+            Sign In
+          </NavLink>
+        </div>
+      )}
+    </div>
   </div>
 )}
     </nav>
