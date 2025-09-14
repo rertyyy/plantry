@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Package, Zap, BarChart3, LogOut, MessageSquare, ChevronDown, Settings, Palette } from "lucide-react";
+import { Home, Package, Zap, BarChart3, LogOut, MessageSquare, ChevronDown, Settings, Palette, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
@@ -14,6 +14,7 @@ export const Navigation = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [username, setUsername] = useState<string>("");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // <-- minimal addition for hamburger
   const { selectedProfile, clearSelection } = useProfile();
 
   useEffect(() => {
@@ -79,11 +80,15 @@ export const Navigation = () => {
       if (showProfileDropdown && !(event.target as Element)?.closest('.profile-dropdown')) {
         setShowProfileDropdown(false);
       }
+      // also close mobile menu when tapping outside of it
+      if (isMenuOpen && !(event.target as Element)?.closest('.mobile-menu') && !(event.target as Element)?.closest('.mobile-menu-toggle')) {
+        setIsMenuOpen(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [showProfileDropdown]);
+  }, [showProfileDropdown, isMenuOpen]);
 
   const navItems = user ? [
     { to: "/", icon: Home, label: "Home" },
@@ -101,14 +106,16 @@ export const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-2">
-                      <img
-            src="/favicon.ico"
-            alt="favicon"
-            className="w-6 h-6"
-          />
-    <h1 className="text-lg font-semibold text-foreground">Plantry</h1>
+            <img
+              src="/favicon.ico"
+              alt="favicon"
+              className="w-6 h-6"
+            />
+            <h1 className="text-lg font-semibold text-foreground">Plantry</h1>
           </div>
-          <div className="flex items-center space-x-8">
+
+          {/* Desktop: keep as-is but hide on small screens */}
+          <div className="hidden md:flex items-center space-x-8">
             <div className="flex space-x-8">
               {navItems.map((item) => (
                 <NavLink
@@ -201,8 +208,58 @@ export const Navigation = () => {
               </NavLink>
             )}
           </div>
+
+          {/* Minimal addition: mobile hamburger (visible only on small screens) */}
+          <div className="flex md:hidden items-center">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 mobile-menu-toggle"
+              aria-label="Toggle menu"
+              type="button"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Minimal addition: mobile collapsible menu (placed outside top bar so desktop remains untouched) */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-surface border-t border-border px-4 pb-4 space-y-2 mobile-menu">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center py-2 text-sm font-medium ${
+                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                }`
+              }
+            >
+              <item.icon className="w-4 h-4 mr-2" />
+              {item.label}
+            </NavLink>
+          ))}
+
+          {user ? (
+            <button
+              onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+              className="w-full text-left py-2 text-sm text-foreground hover:text-primary"
+            >
+              Logout
+            </button>
+          ) : (
+            <NavLink
+              to="/auth"
+              onClick={() => setIsMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-primary"
+            >
+              Sign In
+            </NavLink>
+          )}
+        </div>
+      )}
     </nav>
   );
 };
