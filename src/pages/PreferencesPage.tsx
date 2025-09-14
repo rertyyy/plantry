@@ -141,6 +141,7 @@ export default function PreferencesPage() {
               Customize your profile avatar and display settings
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -150,14 +151,15 @@ export default function PreferencesPage() {
                     Add confetti celebrations when you complete tasks!
                   </p>
                 </div>
+
                 <Switch
-                id="fun-mode"
-                checked={funMode}
-                onCheckedChange={setFunMode}
-                className="border border-gray-300"
-              />
-            </div>
+                  id="fun-mode"
+                  checked={funMode}
+                  onCheckedChange={setFunMode}
+                  className="border border-gray-300"
+                />
               </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -172,6 +174,7 @@ export default function PreferencesPage() {
               Choose your preferred color scheme and appearance
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <div className="space-y-6">
               {/* Dark Mode Toggle */}
@@ -185,13 +188,13 @@ export default function PreferencesPage() {
                     Switch between light and dark appearance
                   </p>
                 </div>
+
                 <Switch
-                id="dark-mode"
-                checked={darkMode}
-                onCheckedChange={setDarkMode}
-                className="border border-gray-300"
-              />
-              </div>
+                  id="dark-mode"
+                  checked={darkMode}
+                  onCheckedChange={setDarkMode}
+                  className="border border-gray-300"
+                />
               </div>
 
               {/* Theme Selection */}
@@ -215,6 +218,7 @@ export default function PreferencesPage() {
                   ))}
                 </div>
               </div>
+            </div>
           </CardContent>
         </Card>
 
