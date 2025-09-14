@@ -299,26 +299,24 @@ export const Navigation = () => {
     </div>
 
     {/* Bottom area with Logout (for logged-in users) or Sign In button */}
-    <div className="relative">
-      {user ? (
-        <div className="absolute left-0 right-0 bottom-6 flex justify-center px-6">
-          <button
-            onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
-            className="bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md"
-          >
-            Logout
-          </button>
-        </div>
-      ) : (
-        <div className="absolute left-0 right-0 bottom-6 flex justify-center px-6">
-          <NavLink
-            to="/auth"
-            onClick={() => setIsMenuOpen(false)}
-            className="block bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md text-center"
-          >
-            Sign In
-          </NavLink>
-        </div>
+          <div className="px-6 pb-8 flex justify-center">
+            {user ? (
+              <button
+                onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+                className="bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md"
+              >
+                Logout
+              </button>
+            ) : (
+              <NavLink
+                to="/auth"
+                onClick={() => setIsMenuOpen(false)}
+                className="block bg-black text-white rounded-lg px-8 py-3 text-xl w-full max-w-md text-center"
+              >
+                Sign In
+              </NavLink>
+            )}
+          </div>
       )}
     </div>
   </div>
