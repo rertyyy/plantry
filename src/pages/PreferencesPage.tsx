@@ -215,7 +215,6 @@ export default function PreferencesPage() {
                   ))}
                 </div>
               </div>
-            </div>
           </CardContent>
         </Card>
 
