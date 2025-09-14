@@ -151,11 +151,11 @@ export default function PreferencesPage() {
                   </p>
                 </div>
                 <Switch
-                  id="fun-mode"
-                  checked={funMode}
-                  onCheckedChange={setFunMode}
-                />
-              </div>
+                id="fun-mode"
+                checked={funMode}
+                onCheckedChange={setFunMode}
+                className="border border-gray-300"
+              />
             </div>
           </CardContent>
         </Card>
@@ -185,10 +185,11 @@ export default function PreferencesPage() {
                   </p>
                 </div>
                 <Switch
-                  id="dark-mode"
-                  checked={darkMode}
-                  onCheckedChange={setDarkMode}
-                />
+                id="dark-mode"
+                checked={darkMode}
+                onCheckedChange={setDarkMode}
+                className="border border-gray-300"
+              />
               </div>
 
               {/* Theme Selection */}
