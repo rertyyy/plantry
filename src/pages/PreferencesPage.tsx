@@ -192,6 +192,7 @@ export default function PreferencesPage() {
                 className="border border-gray-300"
               />
               </div>
+              </div>
 
               {/* Theme Selection */}
               <div>
