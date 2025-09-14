@@ -224,9 +224,38 @@ export const Navigation = () => {
       </div>
 
       {/* Minimal addition: mobile collapsible menu (placed outside top bar so desktop remains untouched) */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-surface border-t border-border px-4 pb-4 space-y-2 mobile-menu">
-          {navItems.map((item) => (
+      {/* Mobile collapsible menu (replace your existing isMenuOpen block with this) */}
+{isMenuOpen && (
+  <div className="md:hidden bg-surface border-t border-border px-4 pb-4 space-y-2 mobile-menu">
+    {/* primary nav items (existing) */}
+    {navItems.map((item) => (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        onClick={() => setIsMenuOpen(false)}
+        className={({ isActive }) =>
+          `flex items-center py-2 text-sm font-medium ${
+            isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          }`
+        }
+      >
+        <item.icon className="w-4 h-4 mr-2" />
+        {item.label}
+      </NavLink>
+    ))}
+
+    {/* for logged-in users: add sidebar items (dashboard, analytics, insights, settings, preferences) */}
+    {user && (
+      <>
+        <hr className="border-border my-1" />
+        <div className="pt-1 space-y-1">
+          {[
+            { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
+            { to: "/analytics", icon: BarChart3, label: "Analytics" },
+            { to: "/insights", icon: BarChart3, label: "Insights" },
+            { to: "/settings", icon: Settings, label: "Settings" },
+            { to: "/preferences", icon: Palette, label: "Preferences" },
+          ].map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -241,25 +270,29 @@ export const Navigation = () => {
               {item.label}
             </NavLink>
           ))}
-
-          {user ? (
-            <button
-              onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
-              className="w-full text-left py-2 text-sm text-foreground hover:text-primary"
-            >
-              Logout
-            </button>
-          ) : (
-            <NavLink
-              to="/auth"
-              onClick={() => setIsMenuOpen(false)}
-              className="block py-2 text-sm font-medium text-primary"
-            >
-              Sign In
-            </NavLink>
-          )}
         </div>
-      )}
+      </>
+    )}
+
+    {/* auth / logout (existing, unchanged behavior) */}
+    {user ? (
+      <button
+        onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+        className="w-full text-left py-2 text-sm text-foreground hover:text-primary"
+      >
+        Logout
+      </button>
+    ) : (
+      <NavLink
+        to="/auth"
+        onClick={() => setIsMenuOpen(false)}
+        className="block py-2 text-sm font-medium text-primary"
+      >
+        Sign In
+      </NavLink>
+    )}
+  </div>
+)}
     </nav>
   );
 };
