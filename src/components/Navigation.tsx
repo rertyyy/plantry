@@ -228,7 +228,7 @@ export const Navigation = () => {
         </div>
       </div>
 
-     {/* ---------- MOBILE MENU (ONLY this block changed) ---------- */}
+         {/* ---------- MOBILE MENU (ONLY this block changed) ---------- */}
 {isMenuOpen && (
   <div className="md:hidden fixed inset-0 z-50 mobile-menu bg-white">
     <div className="flex flex-col h-full">
@@ -248,9 +248,9 @@ export const Navigation = () => {
         </button>
       </div>
 
-      {/* Content: nav items. This area is scrollable if content overflows but background page is locked. */}
-      <div className="flex-1 overflow-auto px-6 pt-12 pb-6 flex flex-col items-center">
-        {/* primary nav items (slightly raised; reduced vertical padding to fix "Home" feeling low) */}
+      {/* Content: nav items. moved closer to top by reducing top padding (pt-12 -> pt-6) */}
+      <div className="flex-1 overflow-auto px-6 pt-6 pb-6 flex flex-col items-center">
+        {/* primary nav items */}
         <div className="w-full max-w-md">
           {navItems.map((item) => (
             <NavLink
@@ -268,10 +268,9 @@ export const Navigation = () => {
           ))}
         </div>
 
-        {/* logged-in extra pages */}
+        {/* logged-in extra pages (removed gray divider and tightened spacing) */}
         {user && (
-          <div className="mt-6 w-full max-w-md">
-            <hr className="border-border mb-4" />
+          <div className="mt-4 w-full max-w-md">
             <div className="space-y-2">
               {[
                 { to: "/analytics", label: "Analytics" },
@@ -297,7 +296,7 @@ export const Navigation = () => {
         )}
       </div>
 
-      {/* Footer: Sign In / Logout pinned to bottom and full width (won't overlap content) */}
+      {/* Footer: Sign In / Logout pinned to bottom and full width */}
       <div className="px-6 pb-8 pt-2">
         {user ? (
           <button
