@@ -248,59 +248,48 @@ export const Navigation = () => {
         </button>
       </div>
 
-      {/* Content: nav items. moved closer to top by reducing top padding (pt-12 -> pt-6) */}
-      <div className="flex-1 overflow-auto px-6 pt-6 pb-6 flex flex-col items-center">
-        {/* primary nav items */}
-        <div className="w-full max-w-md">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={() => setIsMenuOpen(false)}
-              className={({ isActive }) =>
-                `block text-center py-2 text-2xl font-medium ${
-                  isActive ? "font-semibold text-black" : "text-black"
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+      {/* Content: unified, evenly spaced nav list (moved slightly up with reduced top padding) */}
+      <div className="flex-1 overflow-auto px-6 pt-6 pb-6">
+        <div className="w-full max-w-md mx-auto">
+          <nav className="flex flex-col items-stretch space-y-3">
+            {[
+              // primary nav items
+              ...navItems.map((i) => ({ to: i.to, label: i.label })),
+              // extra user-only items appended directly (no dividers)
+              ...(user
+                ? [
+                    { to: "/analytics", label: "Analytics" },
+                    { to: "/insights", label: "Insights" },
+                    { to: "/settings", label: "Settings" },
+                    { to: "/preferences", label: "Preferences" },
+                  ]
+                : []),
+            ].map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsMenuOpen(false)}
+                className={({ isActive }) =>
+                  `block w-full text-center py-3 text-xl font-medium transition ${
+                    isActive ? "font-semibold text-black" : "text-black"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
         </div>
-
-        {/* logged-in extra pages (removed gray divider and tightened spacing) */}
-        {user && (
-          <div className="mt-4 w-full max-w-md">
-            <div className="space-y-2">
-              {[
-                { to: "/analytics", label: "Analytics" },
-                { to: "/insights", label: "Insights" },
-                { to: "/settings", label: "Settings" },
-                { to: "/preferences", label: "Preferences" },
-              ].map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `block text-center py-2 text-2xl font-medium ${
-                      isActive ? "font-semibold text-black" : "text-black"
-                    }`
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer: Sign In / Logout pinned to bottom and full width */}
       <div className="px-6 pb-8 pt-2">
         {user ? (
           <button
-            onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+            onClick={() => {
+              setIsMenuOpen(false);
+              handleSignOut();
+            }}
             className="bg-black text-white rounded-lg px-6 py-3 text-lg w-full max-w-md mx-auto block"
           >
             Logout
@@ -318,7 +307,6 @@ export const Navigation = () => {
     </div>
   </div>
 )}
-{/* ---------- end mobile menu block ---------- */}
-        </nav>
+</nav>
   );
 };
