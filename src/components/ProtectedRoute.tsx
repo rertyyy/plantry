@@ -14,23 +14,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, user, 
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    // Wait for auth rehydration and subscription check before redirecting
-    if (!authChecked || loading) return;
+ useEffect(() => {
+  if (!authChecked || loading) return; // ✅ still wait for both
 
-    // If no user is logged in, redirect to auth and preserve the attempted location
-    if (!user) {
-      navigate('/auth', { replace: true, state: { from: location } });
-      return;
-    }
+  if (!user) {
+    navigate("/auth", { replace: true, state: { from: location } });
+    return;
+  }
 
-    // If user doesn't have access (not pro or admin), redirect to pricing
-    if (!hasAccess) {
-      navigate('/pricing', { replace: true });
-      return;
-    }
-  }, [authChecked, hasAccess, loading, user, navigate, location]);
-
+  if (!hasAccess) {
+    navigate("/pricing", { replace: true });
+    return;
+  }
+}, [authChecked, hasAccess, loading, user, navigate, location]);
+  
   // Show loading state while checking subscription or waiting for auth rehydration
   if (!authChecked || loading) {
     return (
