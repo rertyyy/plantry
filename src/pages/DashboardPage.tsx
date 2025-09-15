@@ -214,7 +214,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Main Content - reduced padding on mobile */}
-        <div className="flex-1 px-4 py-6 sm:p-8">
+        <div className="flex-1 px-4 py-6 sm:p-8 min-w-0">
           <div className="mb-8">
             <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">
               Dashboard
@@ -227,7 +227,7 @@ export default function DashboardPage() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {stats.map((stat, index) => (
-              <div key={index} className="apple-card p-4 sm:p-6 rounded-xl">
+              <div key={index} className="apple-card p-4 sm:p-6 rounded-xl min-w-0 w-full">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`w-12 sm:w-16 h-12 rounded-xl flex items-center justify-center ${
                     stat.trend === 'warning' ? 'bg-red-100' : 'bg-surface-tertiary'
@@ -258,11 +258,13 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             {/* Budget Settings */}
             {user && (
-              <BudgetSettings user={user} onBudgetUpdate={handleBudgetUpdate} />
+              <div className="min-w-0 w-full">
+                <BudgetSettings user={user} onBudgetUpdate={handleBudgetUpdate} />
+              </div>
             )}
 
             {/* Spending Chart */}
-            <div className="apple-card p-4 sm:p-6 rounded-xl">
+            <div className="apple-card p-4 sm:p-6 rounded-xl min-w-0 w-full">
               <h3 className="text-2xl font-semibold text-foreground mb-6">
                 Weekly Pantry Expenses
               </h3>
@@ -270,17 +272,17 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {realTimeStats.weeklyExpenses.length > 0 ? (
                   realTimeStats.weeklyExpenses.map((expense, index) => {
-                    const maxAmount = Math.max(...realTimeStats.weeklyExpenses.map(e => e.total_amount), weeklyBudget);
-                    const width = `${(expense.total_amount / maxAmount) * 100}%`;
+                    const maxAmount = Math.max(...realTimeStats.weeklyExpenses.map(e => e.total_amount), weeklyBudget) || 1;
+                    const width = `${Math.min(((expense.total_amount / maxAmount) * 100) || 0, 100)}%`;
                     const weekStart = new Date(expense.week_start);
                     const budgetPercentage = (expense.total_amount / weeklyBudget) * 100;
                     
                     return (
                       <div key={expense.id} className="flex items-center space-x-4">
-                        <div className="w-12 sm:w-16 text-sm text-muted-foreground">
+                        <div className="w-12 sm:w-16 text-sm text-muted-foreground min-w-0 truncate">
                           {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="w-full bg-grey-200 rounded-full h-3 relative">
                             <div 
                               className={`h-3 rounded-full transition-all duration-500 ${
@@ -291,7 +293,7 @@ export default function DashboardPage() {
                             ></div>
                           </div>
                         </div>
-                        <div className="w-16 sm:w-20 text-sm font-medium text-right">
+                        <div className="w-16 sm:w-20 text-sm font-medium text-right min-w-0 truncate">
                           ${expense.total_amount.toFixed(2)}
                           <div className="text-xs text-muted-foreground">
                             {budgetPercentage.toFixed(0)}% of budget
@@ -310,7 +312,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Pantry Analytics */}
-            <div className="apple-card p-4 sm:p-6 rounded-xl">
+            <div className="apple-card p-4 sm:p-6 rounded-xl min-w-0 w-full">
               <h3 className="text-2xl font-semibold text-foreground mb-6">
                 Pantry Analytics
               </h3>
@@ -350,13 +352,13 @@ export default function DashboardPage() {
                   const isLowBudget = index === 2 && parseFloat(data.percentage) < 20;
                   
                   return (
-                    <div key={index} className="apple-surface p-4 rounded-lg">
+                    <div key={index} className="apple-surface p-4 rounded-lg min-w-0">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium text-foreground">
+                        <span className="font-medium text-foreground truncate">
                           {data.category}
                         </span>
-                        <div className="text-right">
-                          <span className="text-lg font-bold text-primary">
+                        <div className="text-right min-w-0">
+                          <span className="text-lg font-bold text-primary truncate">
                             {data.isAmount ? `$${data.amount.toFixed(2)}` : data.amount}
                           </span>
                           <div className="text-xs text-muted-foreground">
@@ -381,7 +383,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Entries Table */}
-          <div className="apple-card rounded-xl overflow-hidden">
+          <div className="apple-card p-4 sm:p-6 rounded-xl overflow-hidden min-w-0 w-full">
             <div className="p-6 border-b border-border">
               <h3 className="text-2xl font-semibold text-foreground">
                 Recent Entries
@@ -391,7 +393,7 @@ export default function DashboardPage() {
               </p>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto sm:overflow-x-visible">
               <table className="w-full">
                 <thead className="bg-surface-secondary">
                   <tr>
@@ -424,7 +426,7 @@ export default function DashboardPage() {
                         <td className="px-3 sm:px-6 py-4 text-sm text-muted-foreground">
                           {new Date(entry.created_at).toLocaleDateString()}
                         </td>
-                        <td className="px-3 sm:px-6 py-4 text-sm font-medium text-foreground">
+                        <td className="px-3 sm:px-6 py-4 text-sm font-medium text-foreground max-w-[12rem] overflow-hidden truncate whitespace-nowrap">
                           {entry.name}
                         </td>
                         <td className="px-3 sm:px-6 py-4 text-sm font-bold text-primary">
