@@ -111,7 +111,6 @@ export default function HouseholdGroceriesPage() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Main Content */}
       <div>
