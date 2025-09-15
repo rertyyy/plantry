@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,19 +32,33 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    // Get initial session and mark authChecked once resolved
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        // Even on error, mark checked so ProtectedRoute won't wait forever
+        setAuthChecked(true);
+      });
 
-    // Listen for auth changes
+    // Listen for auth changes and keep state in sync
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setAuthChecked(true); // any auth event confirms the auth system is active
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      try {
+        subscription?.unsubscribe?.();
+      } catch (e) {
+        // ignore
+      }
+    };
   }, []);
 
   return (
@@ -70,27 +85,27 @@ const App = () => {
                     
                     {/* Protected Routes */}
                     <Route path="/dashboard" element={
-                      <ProtectedRoute user={user}>
+                      <ProtectedRoute user={user} authChecked={authChecked}>
                         <DashboardPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/groceries" element={
-                      <ProtectedRoute user={user}>
+                      <ProtectedRoute user={user} authChecked={authChecked}>
                         <HouseholdGroceriesPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/analytics" element={
-                      <ProtectedRoute user={user}>
+                      <ProtectedRoute user={user} authChecked={authChecked}>
                         <AnalyticsPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/ai-generation" element={
-                      <ProtectedRoute user={user}>
+                      <ProtectedRoute user={user} authChecked={authChecked}>
                         <AIGenerationPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/insights" element={
-                      <ProtectedRoute user={user}>
+                      <ProtectedRoute user={user} authChecked={authChecked}>
                         <InsightsPage />
                       </ProtectedRoute>
                     } />
