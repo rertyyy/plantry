@@ -4,6 +4,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useLocation } from "react-router-dom";
 
 export default function AuthPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -14,41 +15,31 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+const location = useLocation();
 
   useEffect(() => {
-  // Set up auth state listener
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        // Go back one step in history, or fallback if none
-        if (window.history.state && window.history.state.idx > 0) {
-          navigate(-1);
-        } else {
-          navigate("/dashboard"); // fallback if no history
-        }
-      }
-    }
-  );
-
-  // Check for existing session on mount
-  supabase.auth.getSession().then(({ data: { session } }) => {
+  const handleSession = (session: Session | null) => {
     setSession(session);
     setUser(session?.user ?? null);
 
     if (session?.user) {
-      if (window.history.state && window.history.state.idx > 0) {
-        navigate(-1);
-      } else {
-        navigate("/dashboard");
-      }
+      navigate(location.pathname, { replace: true });
     }
+  };
+
+  // Set up auth state listener
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    (_event, session) => handleSession(session)
+  );
+
+  // Check for existing session on mount
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    handleSession(session);
   });
 
   return () => subscription.unsubscribe();
-}, [navigate]);
+}, [navigate, location.pathname]);
+  
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
