@@ -1,4 +1,3 @@
-// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,23 +31,16 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [authChecked, setAuthChecked] = useState(false); // <-- added
 
   useEffect(() => {
-    // Get initial session and mark authChecked once resolved
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        setAuthChecked(true);
-      })
-      .catch(() => {
-        setAuthChecked(true);
-      });
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
 
-    // Listen for auth changes and keep state in sync
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      setAuthChecked(true); // any auth event confirms the auth system is active
     });
 
     return () => subscription.unsubscribe();
@@ -78,27 +70,27 @@ const App = () => {
                     
                     {/* Protected Routes */}
                     <Route path="/dashboard" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
+                      <ProtectedRoute user={user}>
                         <DashboardPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/groceries" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
+                      <ProtectedRoute user={user}>
                         <HouseholdGroceriesPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/analytics" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
+                      <ProtectedRoute user={user}>
                         <AnalyticsPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/ai-generation" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
+                      <ProtectedRoute user={user}>
                         <AIGenerationPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/insights" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
+                      <ProtectedRoute user={user}>
                         <InsightsPage />
                       </ProtectedRoute>
                     } />
