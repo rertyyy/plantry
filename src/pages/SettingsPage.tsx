@@ -329,10 +329,10 @@ export default function SettingsPage() {
     
     <nav className="space-y-2">
       {[
-        { name: "Overview", path: "/dashboard", icon: Home, active: true },
+        { name: "Overview", path: "/dashboard", icon: Home, active: false },
         { name: "Analytics", path: "/analytics", icon: BarChart3, active: false },
         { name: "Insights", path: "/insights", icon: Activity, active: false },
-        { name: "Settings", path: "/settings", icon: Settings, active: false }
+        { name: "Settings", path: "/settings", icon: Settings, active: true }
       ].map((item) => (
         <button
           key={item.name}
