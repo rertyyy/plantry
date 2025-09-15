@@ -891,30 +891,37 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
               <span>Add Item</span>
             </button>
             
-            {selectedProfile && (
-              <div className="flex items-center space-x-3 bg-surface-secondary rounded-lg px-4 py-2.5 border border-border">
-                <div 
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
-                  style={{ backgroundColor: selectedProfile.color }}
-                >
-                  {selectedProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Adding as: {selectedProfile.name}</p>
-                  <p className="text-xs text-muted-foreground">Items will be attributed to this profile</p>
-                </div>
-              </div>
-            )}
-            
-            {!selectedProfile && (
-              <div className="flex items-center space-x-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-4 py-2.5 border border-yellow-200 dark:border-yellow-800">
-                <span className="text-sm text-yellow-800 dark:text-yellow-200">
-                  ⚠️ No profile selected
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+             {selectedProfile ? (
+  <div className="bg-surface-secondary rounded-lg px-4 py-2.5 border border-border">
+    {/* Desktop/tablet: show icon and attribution */}
+    <div className="hidden sm:flex items-center space-x-3">
+      <div
+        className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
+        style={{ backgroundColor: selectedProfile.color }}
+      >
+        {selectedProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-foreground">Adding as: {selectedProfile.name}</p>
+        <p className="text-xs text-muted-foreground">Items will be attributed to this profile</p>
+      </div>
+    </div>
+    {/* Mobile: show only simple text */}
+    <div className="flex sm:hidden items-center justify-center">
+      <p className="text-sm font-medium text-foreground">
+        Adding as: {selectedProfile.name}
+      </p>
+    </div>
+  </div>
+) : (
+  <div className="flex items-center space-x-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-4 py-2.5 border border-yellow-200 dark:border-yellow-800">
+    <span className="text-sm text-yellow-800 dark:text-yellow-200">
+      ⚠️ No profile selected
+    </span>
+  </div>
+)}
+
+
 
         {/* Expiration Summary */}
         {(() => {
@@ -1356,3 +1363,4 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
     </div>
   );
 }
+
