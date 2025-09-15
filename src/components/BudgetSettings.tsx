@@ -121,7 +121,7 @@ export default function BudgetSettings({ user, onBudgetUpdate }: BudgetSettingsP
         <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary rounded-lg min-w-0">
           <div className="flex items-center space-x-3 min-w-0">
             <DollarSign className="w-5 h-5 text-primary flex-shrink-0" />
-            <span className="font-medium text-foreground truncate">Weekly Budget</span>
+            <span className="font-medium text-foreground truncate">Budget</span>
           </div>
           
           {isEditing ? (
