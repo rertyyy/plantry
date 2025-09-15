@@ -4,7 +4,6 @@ import { User, Session } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useLocation } from "react-router-dom";
 
 export default function AuthPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -15,49 +14,36 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-const location = useLocation();
 
- useEffect(() => {
-  const redirectAfterAuth = (session: Session | null) => {
-    if (!session?.user) return;
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Redirect authenticated users to groceries page
+        const navigateBack = () => {
+  // Go back one step in history, or fallback if none
+  if (window.history.state && window.history.state.idx > 0) {
+    navigate(-1);
+  } else {
+    navigate("/dashboard"); // fallback if no history
+  }
+};
 
-    // If ProtectedRoute redirected to /auth it should pass the original location:
-    // navigate('/auth', { state: { from: location } })
-    const from = (location.state as any)?.from?.pathname ?? (location.state as any)?.from;
-    if (from) {
-      navigate(from, { replace: true });
-    }
-    // otherwise: DO NOTHING -> stay on the current page (no /dashboard fallback)
-  };
-
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      redirectAfterAuth(session);
-    }
-  );
-
-  supabase.auth.getSession()
-    .then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      redirectAfterAuth(session);
-    })
-    .catch((err) => {
-      console.error("supabase.getSession error:", err);
+      
+      if (session?.user) {
+        navigate("/groceries");
+      }
     });
 
-  return () => {
-    try {
-      subscription?.unsubscribe?.();
-    } catch (e) {
-      // ignore
-    }
-  };
-}, [navigate, location.pathname]);
-
-  
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
