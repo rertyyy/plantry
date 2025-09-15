@@ -14,42 +14,25 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
+    );
 
-  useEffect(() => {
-  // Set up auth state listener
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => {
+    // Check for existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+    });
 
-      if (session?.user) {
-        // Go back one step in history, or fallback if none
-        if (window.history.state && window.history.state.idx > 0) {
-          navigate(-1);
-        } else {
-          navigate("/dashboard"); // fallback if no history
-        }
-      }
-    }
-  );
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
-  // Check for existing session on mount
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    setSession(session);
-    setUser(session?.user ?? null);
-
-    if (session?.user) {
-      if (window.history.state && window.history.state.idx > 0) {
-        navigate(-1);
-      } else {
-        navigate("/dashboard");
-      }
-    }
-  });
-
-  return () => subscription.unsubscribe();
-}, [navigate]);
-
+  
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
