@@ -17,29 +17,26 @@ export default function AuthPage() {
   const { toast } = useToast();
 const location = useLocation();
 
-  useEffect(() => {
-  const handleSession = (session: Session | null) => {
-    setSession(session);
-    setUser(session?.user ?? null);
-
-    if (session?.user) {
-      navigate(location.pathname, { replace: true });
-    }
-  };
-
-  // Set up auth state listener
+ useEffect(() => {
+  // Keep auth listener + initial session check, but do NOT navigate here.
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => handleSession(session)
+    (_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    }
   );
 
-  // Check for existing session on mount
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    handleSession(session);
-  });
+  supabase.auth.getSession()
+    .then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    })
+    .catch((err) => {
+      console.error("supabase.getSession error:", err);
+    });
 
   return () => subscription.unsubscribe();
-}, [navigate, location.pathname]);
-  
+}, []); // no navigate dependency — effect only sets state
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
