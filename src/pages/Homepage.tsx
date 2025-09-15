@@ -153,7 +153,7 @@ export default function Homepage() {
     <div className="text-center mb-16 animate-fade-in">
       <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground font-medium mb-4 animate-slide-in-left">
         <Award className="w-4 h-4" />
-        <span>Award-Winning Grocery Management</span>
+        <span>The #1 Food Tracking Tool</span>
       </div>
       <h1 className="text-4xl sm:text-6xl font-bold mb-6 tracking-tight leading-tight animate-fade-in-up text-black">
         The most advanced grocery<br />
