@@ -36,47 +36,71 @@ export default function AnalyticsPage() {
   weeklyBudget: 100
 });
 
-  useEffect(() => {
-    const checkAuthAndSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUser(user);
-      
-      // Temporarily bypass subscription check for development
-      // First check local database for subscription status
-      const { data: localSubscription } = await supabase
-        .from('paypal_subscribers')
-        .select('subscribed, subscription_tier, subscription_end')
-        .eq('user_id', user.id)
-        .single();
-        
-      // Bypass subscription check - allow access for now
-      fetchAnalyticsData(user);
-      return;
-      
-      /* COMMENTED OUT SUBSCRIPTION CHECK
-      if (localSubscription?.subscribed && 
-          (localSubscription.subscription_tier === "Pro" || localSubscription.subscription_tier === "Pro Annual")) {
-        // User has Pro subscription in database
-        fetchAnalyticsData(user);
-        return;
-      }
-      
-      // If not in database or not subscribed, check with PayPal
-      const { data, error } = await supabase.functions.invoke("paypal-verify-subscription");
-      if (!data?.subscribed || (data.subscription_tier !== "Pro" && data.subscription_tier !== "Pro Annual")) {
-        navigate("/pricing");
-        return;
-      }
-      
-      fetchAnalyticsData(user);
-      */
-    };
-    checkAuthAndSubscription();
-  }, [navigate]);
+                    useEffect(() => {
+                    let mounted = true;
+                  
+                    const checkAuthAndSubscription = async () => {
+                      try {
+                        // ✅ Use getSession (more reliable after refresh than getUser)
+                        const { data } = await supabase.auth.getSession();
+                        if (!mounted) return;
+                  
+                        const session = data?.session ?? null;
+                        const user = session?.user ?? null;
+                  
+                        if (!user) {
+                          navigate("/auth", { replace: true });
+                          return;
+                        }
+                  
+                        setUser(user);
+                  
+                        // --- Subscription logic ---
+                        const { data: localSubscription, error: subError } = await supabase
+                          .from("paypal_subscribers")
+                          .select("subscribed, subscription_tier, subscription_end")
+                          .eq("user_id", user.id)
+                          .single();
+                  
+                        if (subError) {
+                          console.error("Subscription check error:", subError);
+                        }
+                  
+                        // For now you’re bypassing, so just call analytics fetch
+                        fetchAnalyticsData(user);
+                        return;
+                  
+                        if (localSubscription?.subscribed &&
+                            (localSubscription.subscription_tier === "Pro" || localSubscription.subscription_tier === "Pro Annual")) {
+                          fetchAnalyticsData(user);
+                          return;
+                        }
+                  
+                        // If not in DB or not subscribed, double-check with PayPal
+                        const { data: paypalData, error: paypalError } = await supabase.functions.invoke("paypal-verify-subscription");
+                        if (paypalError) {
+                          console.error("PayPal verify error:", paypalError);
+                        }
+                  
+                        if (!paypalData?.subscribed || 
+                            (paypalData.subscription_tier !== "Pro" && paypalData.subscription_tier !== "Pro Annual")) {
+                          navigate("/pricing", { replace: true });
+                          return;
+                        }
+                  
+                        fetchAnalyticsData(user);
+                      } catch (err) {
+                        console.error("Auth/subscription check failed:", err);
+                        navigate("/auth", { replace: true });
+                      }
+                    };
+                  
+                    checkAuthAndSubscription();
+                  
+                    return () => {
+                      mounted = false;
+                    };
+                  }, [navigate]);
 
   const fetchAnalyticsData = async (user: User) => {
     try {
