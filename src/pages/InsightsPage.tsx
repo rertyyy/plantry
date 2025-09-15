@@ -734,9 +734,9 @@ export default function InsightsPage() {
     
     <nav className="space-y-2">
       {[
-        { name: "Overview", path: "/dashboard", icon: Home, active: true },
+        { name: "Overview", path: "/dashboard", icon: Home, active: false },
         { name: "Analytics", path: "/analytics", icon: BarChart3, active: false },
-        { name: "Insights", path: "/insights", icon: Activity, active: false },
+        { name: "Insights", path: "/insights", icon: Activity, active: true },
         { name: "Settings", path: "/settings", icon: Settings, active: false }
       ].map((item) => (
         <button
