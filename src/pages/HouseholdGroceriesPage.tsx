@@ -110,7 +110,6 @@ export default function HouseholdGroceriesPage() {
               </p>
             </div>
           </div>
-        </div>
 
       {/* Main Content */}
       <div>
