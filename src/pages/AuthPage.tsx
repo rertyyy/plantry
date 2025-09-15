@@ -21,24 +21,15 @@ const location = useLocation();
   const redirectAfterAuth = (session: Session | null) => {
     if (!session?.user) return;
 
-    // 1) If we were redirected to /auth from a protected route, go back to that route.
-    const from = (location.state as any)?.from?.pathname;
+    // If ProtectedRoute redirected to /auth it should pass the original location:
+    // navigate('/auth', { state: { from: location } })
+    const from = (location.state as any)?.from?.pathname ?? (location.state as any)?.from;
     if (from) {
       navigate(from, { replace: true });
-      return;
     }
-
-    // 2) If user is already on /auth (they opened /auth manually or were redirected here
-    //    but no `from` info exists), send them to a safe default.
-    if (location.pathname === "/auth") {
-      navigate("/dashboard", { replace: true });
-      return;
-    }
-
-    // 3) Otherwise: do nothing — stay on the current path (this preserves page on refresh).
+    // otherwise: DO NOTHING -> stay on the current page (no /dashboard fallback)
   };
 
-  // Listen for auth changes
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
     (_event, session) => {
       setSession(session);
@@ -47,7 +38,6 @@ const location = useLocation();
     }
   );
 
-  // Initial session check on mount
   supabase.auth.getSession()
     .then(({ data: { session } }) => {
       setSession(session);
@@ -58,8 +48,16 @@ const location = useLocation();
       console.error("supabase.getSession error:", err);
     });
 
-  return () => subscription.unsubscribe();
-}, [navigate, location]);
+  return () => {
+    try {
+      subscription?.unsubscribe?.();
+    } catch (e) {
+      // ignore
+    }
+  };
+}, [navigate, location.pathname]);
+
+  
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
