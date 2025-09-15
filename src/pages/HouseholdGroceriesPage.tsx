@@ -57,7 +57,7 @@ export default function HouseholdGroceriesPage() {
   return (
     <div className="min-h-screen bg-background">
                           {/* Household Header */}
-                    <div className="bg-surface/80 backdrop-blur-xl border-b border-border/50 py-6 px-6">
+                    <div className="bg-surface/80 backdrop-blur-xl sm:border-b sm:border-border/50 py-6 px-6">
                       <div className="max-w-7xl mx-auto">
                         <div className="flex items-center justify-between mb-4">
                           <Button
