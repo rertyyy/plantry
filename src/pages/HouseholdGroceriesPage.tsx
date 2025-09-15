@@ -63,7 +63,7 @@ export default function HouseholdGroceriesPage() {
             <Button
               onClick={() => navigate("/profile-selector")}
               variant="ghost" 
-              className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+              className="hidden sm:inline-flex flex items-center space-x-2 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Profiles</span>
@@ -73,7 +73,7 @@ export default function HouseholdGroceriesPage() {
               onClick={() => navigate("/profile-selector")}
               variant="outline"
               size="sm"
-              className="flex items-center space-x-2"
+              className="hidden sm:inline-flex flex items-center space-x-2"
             >
               <UserIcon className="w-4 h-4" />
               <span>Manage Profiles</span>
@@ -82,7 +82,7 @@ export default function HouseholdGroceriesPage() {
           
           <div className="flex items-center space-x-4">
             {/* Show all household profiles */}
-            <div className="flex -space-x-2">
+            <div className="hidden sm:flex -space-x-2">
               {profiles.slice(0, 4).map((profile, index) => (
                 <div
                   key={profile.id}
@@ -103,7 +103,7 @@ export default function HouseholdGroceriesPage() {
               )}
             </div>
             
-            <div>
+            <div className="hidden sm:block">
               <h1 className="text-2xl font-bold text-foreground">
                 Household Groceries
               </h1>
