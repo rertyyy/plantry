@@ -17,6 +17,7 @@ export default function BudgetSettings({ user, onBudgetUpdate }: BudgetSettingsP
 
   useEffect(() => {
     fetchUserSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchUserSettings = async () => {
@@ -85,7 +86,7 @@ export default function BudgetSettings({ user, onBudgetUpdate }: BudgetSettingsP
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update budget: " + error.message,
+        description: "Failed to update budget: " + (error?.message ?? String(error)),
         variant: "destructive",
       });
     }
@@ -93,44 +94,47 @@ export default function BudgetSettings({ user, onBudgetUpdate }: BudgetSettingsP
 
   if (loading) {
     return (
-      <div className="apple-card p-6 rounded-xl">
+      <div className="apple-card p-4 sm:p-6 rounded-xl min-w-0 w-full">
         <div className="text-center text-muted-foreground">Loading budget settings...</div>
       </div>
     );
   }
 
   return (
-    <div className="apple-card p-6 rounded-xl">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="w-12 h-12 bg-surface-tertiary rounded-xl flex items-center justify-center">
-          <Settings className="w-6 h-6 text-primary" />
+    <div className="apple-card p-4 sm:p-6 rounded-xl min-w-0 w-full">
+      {/* Header */}
+      <div className="flex items-center space-x-3 mb-6 min-w-0">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-tertiary rounded-xl flex items-center justify-center flex-shrink-0">
+          <Settings className="w-5 h-5 text-primary" />
         </div>
-        <div>
-          <h3 className="text-2xl font-semibold text-foreground">
+        <div className="min-w-0">
+          <h3 className="text-lg sm:text-2xl font-semibold text-foreground truncate">
             Budget Settings
           </h3>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground truncate">
             Set your weekly grocery budget goal
           </p>
         </div>
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-surface-secondary rounded-lg">
-          <div className="flex items-center space-x-3">
-            <DollarSign className="w-5 h-5 text-primary" />
-            <span className="font-medium text-foreground">Weekly Budget</span>
+        <div className="flex items-center justify-between p-3 sm:p-4 bg-surface-secondary rounded-lg min-w-0">
+          <div className="flex items-center space-x-3 min-w-0">
+            <DollarSign className="w-5 h-5 text-primary flex-shrink-0" />
+            <span className="font-medium text-foreground truncate">Weekly Budget</span>
           </div>
           
           {isEditing ? (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 min-w-0">
               <input
                 type="number"
                 step="0.01"
                 value={budget}
                 onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
-                className="apple-input w-24 text-right"
+                className="apple-input w-20 sm:w-24 text-right max-w-full"
                 min="0"
+                // prevent input from forcing layout by allowing it to shrink
+                style={{ minWidth: 0 }}
               />
               <button
                 onClick={handleSaveBudget}
@@ -146,8 +150,8 @@ export default function BudgetSettings({ user, onBudgetUpdate }: BudgetSettingsP
               </button>
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-primary">
+            <div className="flex items-center space-x-2 min-w-0">
+              <span className="text-xl sm:text-2xl font-bold text-primary truncate">
                 ${budget.toFixed(2)}
               </span>
               <button
@@ -161,7 +165,7 @@ export default function BudgetSettings({ user, onBudgetUpdate }: BudgetSettingsP
         </div>
 
         <div className="text-sm text-muted-foreground">
-          <p>Your weekly budget helps track spending progress and set financial goals for grocery shopping.</p>
+          <p className="truncate">Your weekly budget helps track spending progress and set financial goals for grocery shopping.</p>
         </div>
       </div>
     </div>
