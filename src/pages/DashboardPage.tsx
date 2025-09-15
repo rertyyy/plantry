@@ -31,72 +31,16 @@ export default function DashboardPage() {
     }>
   });
 
-                useEffect(() => {
-                let mounted = true;
-              
-                const checkAuthAndSubscription = async () => {
-                  try {
-                    // ✅ Use getSession (more reliable after refresh than getUser)
-                    const { data } = await supabase.auth.getSession();
-                    if (!mounted) return;
-              
-                    const session = data?.session ?? null;
-                    const user = session?.user ?? null;
-              
-                    if (!user) {
-                      navigate("/auth", { replace: true });
-                      return;
-                    }
-              
-                    setUser(user);
-              
-                    // --- Subscription logic ---
-                    const { data: localSubscription, error: subError } = await supabase
-                      .from("paypal_subscribers")
-                      .select("subscribed, subscription_tier, subscription_end")
-                      .eq("user_id", user.id)
-                      .single();
-              
-                    if (subError) {
-                      console.error("Subscription check error:", subError);
-                    }
-              
-                    // For now you’re bypassing, so just call analytics fetch
-                    fetchAnalyticsData(user);
-                    return;
-              
-                    if (localSubscription?.subscribed &&
-                        (localSubscription.subscription_tier === "Pro" || localSubscription.subscription_tier === "Pro Annual")) {
-                      fetchAnalyticsData(user);
-                      return;
-                    }
-              
-                    // If not in DB or not subscribed, double-check with PayPal
-                    const { data: paypalData, error: paypalError } = await supabase.functions.invoke("paypal-verify-subscription");
-                    if (paypalError) {
-                      console.error("PayPal verify error:", paypalError);
-                    }
-              
-                    if (!paypalData?.subscribed || 
-                        (paypalData.subscription_tier !== "Pro" && paypalData.subscription_tier !== "Pro Annual")) {
-                      navigate("/pricing", { replace: true });
-                      return;
-                    }
-              
-                    fetchAnalyticsData(user);
-                  } catch (err) {
-                    console.error("Auth/subscription check failed:", err);
-                    navigate("/auth", { replace: true });
-                  }
-                };
-              
-                checkAuthAndSubscription();
-              
-                return () => {
-                  mounted = false;
-                };
-              }, [navigate]);
+  useEffect(() => {
+    // Check authentication
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getUser();
+      const currentUser = data?.user ?? null;
 
+      if (!currentUser) {
+        navigate("/login");
+        return;
+      }
 
       // save to state so the rest of the component can use it
       setUser(currentUser);
