@@ -57,28 +57,26 @@ export default function HouseholdGroceriesPage() {
   return (
     <div className="min-h-screen bg-background">
                           {/* Household Header */}
-                    <div className="bg-surface/80 backdrop-blur-xl sm:border-b sm:border-border/50 py-6 px-6">
-                      <div className="max-w-7xl mx-auto">
-                        <div className="flex items-center justify-between mb-4">
-                          <Button
-                            onClick={() => navigate("/profile-selector")}
-                            variant="ghost"
-                            className="hidden sm:flex items-center space-x-2 text-muted-foreground hover:text-foreground"
-                          >
-                            <ArrowLeft className="w-4 h-4" />
-                            <span>Back to Profiles</span>
-                          </Button>
-                    
-                          <Button
-                            onClick={() => navigate("/profile-selector")}
-                            variant="outline"
-                            size="sm"
-                            className="hidden sm:flex items-center space-x-2"
-                          >
-                            <UserIcon className="w-4 h-4" />
-                            <span>Manage Profiles</span>
-                          </Button>
-                        </div>
+                    <div className="hidden sm:flex items-center justify-between mb-4">
+                    <Button
+                      onClick={() => navigate("/profile-selector")}
+                      variant="ghost"
+                      className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back to Profiles</span>
+                    </Button>
+                  
+                    <Button
+                      onClick={() => navigate("/profile-selector")}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center space-x-2"
+                    >
+                      <UserIcon className="w-4 h-4" />
+                      <span>Manage Profiles</span>
+                    </Button>
+                  </div>
                     
                         <div className="flex items-center space-x-4">
             {/* Show all household profiles */}
