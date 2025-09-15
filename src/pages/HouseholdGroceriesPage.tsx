@@ -63,7 +63,7 @@ export default function HouseholdGroceriesPage() {
                           <Button
                             onClick={() => navigate("/profile-selector")}
                             variant="ghost"
-                            className="hidden sm:inline-flex flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+                            className="hidden sm:flex items-center space-x-2 text-muted-foreground hover:text-foreground"
                           >
                             <ArrowLeft className="w-4 h-4" />
                             <span>Back to Profiles</span>
@@ -73,7 +73,7 @@ export default function HouseholdGroceriesPage() {
                             onClick={() => navigate("/profile-selector")}
                             variant="outline"
                             size="sm"
-                            className="hidden sm:inline-flex flex items-center space-x-2"
+                            className="hidden sm:flex items-center space-x-2"
                           >
                             <UserIcon className="w-4 h-4" />
                             <span>Manage Profiles</span>
