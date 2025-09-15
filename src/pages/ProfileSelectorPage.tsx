@@ -103,7 +103,7 @@ export default function ProfileSelectorPage() {
               {editingProfile === profile.id ? (
                 <div className="bg-surface border border-border rounded-3xl p-8 space-y-4 aspect-square flex flex-col justify-center">
                   <div 
-                    className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold"
+                    className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold self-center"
                     style={{ backgroundColor: editColor }}
                   >
                     {getInitials(editName || profile.name)}
@@ -155,7 +155,7 @@ export default function ProfileSelectorPage() {
                   className="bg-surface border border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 group aspect-square flex flex-col justify-center"
                 >
                   <div 
-                    className="w-24 h-24 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-2xl font-semibold"
+                    className="w-24 h-24 rounded-3xl mx-auto mb-6 self-center flex items-center justify-center text-white text-2xl font-semibold"
                     style={{ backgroundColor: profile.color }}
                   >
                     {getInitials(profile.name)}
@@ -165,12 +165,10 @@ export default function ProfileSelectorPage() {
                     {profile.name}
                   </h3>
                   
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Shared household access
-                  </p>
-                  
+                  {/* removed the "Shared household access" sentence as requested */}
+
                   {selectedProfile?.id === profile.id && (
-                    <div className="inline-flex items-center justify-center bg-apple-blue text-apple-blue-foreground text-xs font-medium px-3 py-1 rounded-full">
+                    <div className="hidden sm:inline-flex items-center justify-center bg-apple-blue text-apple-blue-foreground text-xs font-medium px-3 py-1 rounded-full">
                       Currently selected
                     </div>
                   )}
