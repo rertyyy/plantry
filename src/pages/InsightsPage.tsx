@@ -673,10 +673,15 @@ export default function InsightsPage() {
   };
 
 
-  const navigateToGroceries = () => {
-    navigate("/groceries");
-  };
-
+                    const navigateBack = () => {
+                    // Go back one step in history, or fallback if none
+                    if (window.history.state && window.history.state.idx > 0) {
+                      navigate(-1);
+                    } else {
+                      navigate("/dashboard"); // fallback if no history
+                    }
+                  };
+  
   const getWasteTrendIcon = (trend: 'down' | 'same' | 'up') => {
     switch (trend) {
       case 'down': return { icon: TrendingDown, color: 'text-green-600', bg: 'bg-green-100' };
