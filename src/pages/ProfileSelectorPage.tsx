@@ -96,7 +96,7 @@ export default function ProfileSelectorPage() {
       </div>
 
       {/* Profiles Grid */}
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-5xl mx-auto px-5 py-8">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
           {profiles.map((profile) => (
             <div key={profile.id} className="group relative">
