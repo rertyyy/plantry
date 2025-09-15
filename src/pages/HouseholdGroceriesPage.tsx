@@ -56,61 +56,61 @@ export default function HouseholdGroceriesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-                          {/* Household Header */}
-                    <div className="bg-surface/80 backdrop-blur-xl sm:border-b sm:border-border/50 py-6 px-6">
-                      <div className="max-w-7xl mx-auto">
-                        <div className="flex items-center justify-between mb-4">
-                          <Button
-                            onClick={() => navigate("/profile-selector")}
-                            variant="ghost"
-                            className="hidden sm:flex items-center space-x-2 text-muted-foreground hover:text-foreground"
-                          >
-                            <ArrowLeft className="w-4 h-4" />
-                            <span>Back to Profiles</span>
-                          </Button>
-                    
-                          <Button
-                            onClick={() => navigate("/profile-selector")}
-                            variant="outline"
-                            size="sm"
-                            className="hidden sm:flex items-center space-x-2"
-                          >
-                            <UserIcon className="w-4 h-4" />
-                            <span>Manage Profiles</span>
-                          </Button>
-                        </div>
-                    
-                        <div className="flex items-center space-x-4">
-            {/* Show all household profiles */}
-            <div className="hidden sm:flex -space-x-2">
-              {profiles.slice(0, 4).map((profile, index) => (
-                <div
-                  key={profile.id}
-                  className="w-12 h-12 rounded-full border-2 border-background flex items-center justify-center text-white text-sm font-semibold shadow-sm"
-                  style={{ 
-                    backgroundColor: profile.color,
-                    zIndex: profiles.length - index 
-                  }}
-                  title={profile.name}
-                >
-                  {profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                </div>
-              ))}
-              {profiles.length > 4 && (
-                <div className="w-12 h-12 rounded-full border-2 border-background bg-muted flex items-center justify-center text-muted-foreground text-sm font-semibold shadow-sm">
-                  +{profiles.length - 4}
-                </div>
-              )}
-            </div>
-            
-            <div className="hidden sm:block">
-              <h1 className="text-2xl font-bold text-foreground">
-                Household Groceries
-              </h1>
-              <p className="text-muted-foreground">
-                Shared grocery list for all family members
-              </p>
-            </div>
+      {/* Household Header - hidden on mobile, visible from sm and up */}
+      <div className="hidden sm:flex flex-col space-y-4 mb-4">
+        {/* Top row with buttons */}
+        <div className="flex items-center justify-between">
+          <Button
+            onClick={() => navigate("/profile-selector")}
+            variant="ghost"
+            className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Profiles</span>
+          </Button>
+
+          <Button
+            onClick={() => navigate("/profile-selector")}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <UserIcon className="w-4 h-4" />
+            <span>Manage Profiles</span>
+          </Button>
+        </div>
+
+        {/* Household profiles + title */}
+        <div className="flex items-center space-x-4">
+          {/* Show all household profiles */}
+          <div className="flex -space-x-2">
+            {profiles.slice(0, 4).map((profile, index) => (
+              <div
+                key={profile.id}
+                className="w-12 h-12 rounded-full border-2 border-background flex items-center justify-center text-white text-sm font-semibold shadow-sm"
+                style={{
+                  backgroundColor: profile.color,
+                  zIndex: profiles.length - index
+                }}
+                title={profile.name}
+              >
+                {profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+              </div>
+            ))}
+            {profiles.length > 4 && (
+              <div className="w-12 h-12 rounded-full border-2 border-background bg-muted flex items-center justify-center text-muted-foreground text-sm font-semibold shadow-sm">
+                +{profiles.length - 4}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Household Groceries
+            </h1>
+            <p className="text-muted-foreground">
+              Shared grocery list for all family members
+            </p>
           </div>
         </div>
       </div>
