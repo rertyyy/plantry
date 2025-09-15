@@ -57,8 +57,8 @@ export default function HouseholdGroceriesPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Household Header - hidden on mobile, visible from sm and up */}
-                  <div className="hidden sm:block bg-surface/80 backdrop-blur-xl border-b border-border/50 py-6 px-[20px] mb-4">
-                    <div className="max-w-7xl mx-auto flex flex-col space-y-4">
+                  <div className="hidden sm:block bg-surface/80 backdrop-blur-xl border-b border-border/50 py-6 mb-4">
+                    <div className="max-w-7xl mx-auto flex flex-col space-y-4 px-[20px]">
                       {/* Top row with buttons */}
                       <div className="flex items-center justify-between">
                         <Button
