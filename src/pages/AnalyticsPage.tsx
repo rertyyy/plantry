@@ -343,8 +343,8 @@ export default function AnalyticsPage() {
     
     <nav className="space-y-2">
       {[
-        { name: "Overview", path: "/dashboard", icon: Home, active: true },
-        { name: "Analytics", path: "/analytics", icon: BarChart3, active: false },
+        { name: "Overview", path: "/dashboard", icon: Home, active: false },
+        { name: "Analytics", path: "/analytics", icon: BarChart3, active: true },
         { name: "Insights", path: "/insights", icon: Activity, active: false },
         { name: "Settings", path: "/settings", icon: Settings, active: false }
       ].map((item) => (
