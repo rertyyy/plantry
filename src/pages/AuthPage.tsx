@@ -18,25 +18,48 @@ export default function AuthPage() {
 const location = useLocation();
 
  useEffect(() => {
-  // Keep auth listener + initial session check, but do NOT navigate here.
+  const redirectAfterAuth = (session: Session | null) => {
+    if (!session?.user) return;
+
+    // 1) If we were redirected to /auth from a protected route, go back to that route.
+    const from = (location.state as any)?.from?.pathname;
+    if (from) {
+      navigate(from, { replace: true });
+      return;
+    }
+
+    // 2) If user is already on /auth (they opened /auth manually or were redirected here
+    //    but no `from` info exists), send them to a safe default.
+    if (location.pathname === "/auth") {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    // 3) Otherwise: do nothing — stay on the current path (this preserves page on refresh).
+  };
+
+  // Listen for auth changes
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
     (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      redirectAfterAuth(session);
     }
   );
 
+  // Initial session check on mount
   supabase.auth.getSession()
     .then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      redirectAfterAuth(session);
     })
     .catch((err) => {
       console.error("supabase.getSession error:", err);
     });
 
   return () => subscription.unsubscribe();
-}, []); // no navigate dependency — effect only sets state
+}, [navigate, location]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
