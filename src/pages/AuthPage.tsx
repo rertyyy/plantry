@@ -23,11 +23,14 @@ export default function AuthPage() {
         setUser(session?.user ?? null);
         
         // Redirect authenticated users to groceries page
-        if (session?.user) {
-          navigate("/groceries");
-        }
-      }
-    );
+        const navigateBack = () => {
+  // Go back one step in history, or fallback if none
+  if (window.history.state && window.history.state.idx > 0) {
+    navigate(-1);
+  } else {
+    navigate("/dashboard"); // fallback if no history
+  }
+};
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
