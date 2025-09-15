@@ -773,21 +773,22 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Groceries & Pantry
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Drag items between grocery list and pantry to track your weekly expenses
-          </p>
-        </div>
+  <div className="min-h-screen bg-background py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+          Groceries & Pantry
+        </h1>
+        <p className="hidden sm:block text-xl text-muted-foreground">
+          Drag items between grocery list and pantry to track your weekly expenses
+        </p>
+      </div>
 
-        {/* Add Item Form */}
-        <div className="apple-card p-6 rounded-2xl mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">Add New Item</h2>
-          
+      {/* Add Item Form */}
+      <div className="apple-card p-6 rounded-2xl mb-8">
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-6">
+          Add New Item
+        </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
