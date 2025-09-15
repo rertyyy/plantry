@@ -981,96 +981,99 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
           return null;
         })()}
 
-        {/* Drag & Drop Lists */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Groceries */}
-            <div className="apple-card p-6 rounded-2xl">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-surface-tertiary rounded-xl flex items-center justify-center">
-                  <Package className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-foreground">
-                    Groceries
-                  </h2>
-                  <p className="text-muted-foreground">
-                  {groceryItems
-                    .filter(item => item.type === "grocery")
-                    .reduce((total, item) => total + item.quantity, 0)} items • Drag to move to pantry
-                </p>
-                </div>
-              </div>
-              
-              <Droppable droppableId="grocery">
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`space-y-3 min-h-[200px] p-4 rounded-lg transition-colors ${
-                      snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950/20' : ''
-                    }`}
-                  >
-                    {groceryItems.length > 0 ? (
-                      groceryItems.map((item, index) => (
-                        <GroceryItemCard key={item.id} item={item} index={index} />
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No grocery items yet</p>
-                        <p className="text-sm">Items will appear here when added</p>
-                      </div>
-                    )}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </div>
-
-            {/* Pantry */}
-            <div className="apple-card p-6 rounded-2xl">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-surface-tertiary rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-foreground">
-                    Pantry Items
-                  </h2>
-                  <p className="text-muted-foreground">
-            {pantryItems.reduce((total, item) => total + item.quantity, 0)} items • Weekly expenses tracked
-                  </p>
-                </div>
-              </div>
-              
-              <Droppable droppableId="pantry">
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`space-y-3 min-h-[200px] p-4 rounded-lg transition-colors ${
-                      snapshot.isDraggingOver ? 'bg-green-50 dark:bg-green-950/20' : ''
-                    }`}
-                  >
-                    {pantryItems.length > 0 ? (
-                      pantryItems.map((item, index) => (
-                        <PantryItemCard key={item.id} item={item} index={index} />
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No pantry items yet</p>
-                        <p className="text-sm">Drag groceries here to track expenses</p>
-                      </div>
-                    )}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </div>
-          </div>
-        </DragDropContext>
+                                  {/* Drag & Drop Lists */}
+                      <DragDropContext onDragEnd={onDragEnd}>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+                          {/* Groceries */}
+                          <div className="apple-card px-2 py-4 sm:p-6 rounded-2xl">
+                            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                              {/* Hide icon on mobile */}
+                              <div className="hidden sm:flex w-12 h-12 bg-surface-tertiary rounded-xl items-center justify-center">
+                                <Package className="w-6 h-6 text-primary" />
+                              </div>
+                              <div>
+                                {/* Smaller header on mobile */}
+                                <h2 className="text-lg sm:text-2xl font-semibold text-foreground">
+                                  Groceries
+                                </h2>
+                                {/* Hide items/drag line on mobile */}
+                                <p className="hidden sm:block text-muted-foreground">
+                                  {groceryItems.filter(item => item.type === "grocery")
+                                    .reduce((total, item) => total + item.quantity, 0)} items • Drag to move to pantry
+                                </p>
+                              </div>
+                            </div>
+                            <Droppable droppableId="grocery">
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                  className={`space-y-2 sm:space-y-3 min-h-[150px] sm:min-h-[200px] p-2 sm:p-4 rounded-lg transition-colors ${
+                                    snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-950/20' : ''
+                                  }`}
+                                >
+                                  {groceryItems.length > 0 ? (
+                                    groceryItems.map((item, index) => (
+                                      <GroceryItemCard key={item.id} item={item} index={index} hideExpirationOnMobile={true} />
+                                    ))
+                                  ) : (
+                                    <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                                      <Package className="w-12 h-12 mx-auto mb-4 opacity-50 hidden sm:block" />
+                                      <p>No grocery items yet</p>
+                                      <p className="text-sm">Items will appear here when added</p>
+                                    </div>
+                                  )}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </div>
+                      
+                          {/* Pantry */}
+                          <div className="apple-card px-2 py-4 sm:p-6 rounded-2xl">
+                            <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                              {/* Hide icon on mobile */}
+                              <div className="hidden sm:flex w-12 h-12 bg-surface-tertiary rounded-xl items-center justify-center">
+                                <DollarSign className="w-6 h-6 text-primary" />
+                              </div>
+                              <div>
+                                {/* Smaller header on mobile */}
+                                <h2 className="text-lg sm:text-2xl font-semibold text-foreground">
+                                  Pantry Items
+                                </h2>
+                                {/* Hide items/expenses line on mobile */}
+                                <p className="hidden sm:block text-muted-foreground">
+                                  {pantryItems.reduce((total, item) => total + item.quantity, 0)} items • Weekly expenses tracked
+                                </p>
+                              </div>
+                            </div>
+                            <Droppable droppableId="pantry">
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                  className={`space-y-2 sm:space-y-3 min-h-[150px] sm:min-h-[200px] p-2 sm:p-4 rounded-lg transition-colors ${
+                                    snapshot.isDraggingOver ? 'bg-green-50 dark:bg-green-950/20' : ''
+                                  }`}
+                                >
+                                  {pantryItems.length > 0 ? (
+                                    pantryItems.map((item, index) => (
+                                      <PantryItemCard key={item.id} item={item} index={index} />
+                                    ))
+                                  ) : (
+                                    <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                                      <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50 hidden sm:block" />
+                                      <p>No pantry items yet</p>
+                                      <p className="text-sm">Drag groceries here to track expenses</p>
+                                    </div>
+                                  )}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </div>
+                        </div>
+                      </DragDropContext>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
