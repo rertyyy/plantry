@@ -1361,8 +1361,7 @@ export default function GroceryDragDrop({ user }: GroceryDragDropProps) {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      
  </div>
   );
 }
