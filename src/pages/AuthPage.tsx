@@ -1,13 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function AuthPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,46 +13,16 @@ export default function AuthPage() {
   const location = useLocation();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Only redirect back when we have an explicit "from" (ProtectedRoute set it).
-    const redirectAfterAuth = (s: Session | null) => {
-      if (!s?.user) return;
-
-      // If we were redirected to /auth from a protected route, go back to that route.
-      const from = (location.state as any)?.from?.pathname ?? (location.state as any)?.from;
-      if (from) {
-        navigate(from, { replace: true });
-      }
-
-      // Otherwise: do NOTHING — keep the user on the same page (prevents refresh redirects).
-    };
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      redirectAfterAuth(s);
-    });
-
-    // Initial session check on mount
-    supabase.auth.getSession()
-      .then(({ data: { session: s } }) => {
-        setSession(s);
-        setUser(s?.user ?? null);
-        redirectAfterAuth(s);
-      })
-      .catch((err) => {
-        console.error("supabase.getSession error:", err);
-      });
-
-    return () => {
-      try {
-        subscription?.unsubscribe?.();
-      } catch (e) {
-        // ignore cleanup errors
-      }
-    };
-  }, [navigate, location]);
+  // Helper to navigate back to the intended route if present
+  const redirectToFrom = () => {
+    const from = (location.state as any)?.from?.pathname ?? (location.state as any)?.from;
+    if (from) {
+      navigate(from, { replace: true });
+    } else {
+      // optional: go home if no "from", but keep it conservative by staying on auth page.
+      navigate("/", { replace: true });
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,33 +30,46 @@ export default function AuthPage() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const res = await supabase.auth.signInWithPassword({
           email,
           password
         });
-        if (error) throw error;
+        if (res.error) throw res.error;
+
         toast({
           title: "Welcome back!",
           description: "You've successfully signed in.",
         });
+
+        // If the sign-in returned a session right away, redirect to the original route.
+        if (res.data?.session?.user) {
+          redirectToFrom();
+        }
+        // Otherwise, App's central auth subscription will update state; no further action here.
       } else {
-        const { error } = await supabase.auth.signUp({
+        const res = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`
           }
         });
-        if (error) throw error;
+        if (res.error) throw res.error;
+
         toast({
           title: "Account created!",
           description: "Please check your email to verify your account.",
         });
+
+        // If signup created a session (rare when email confirmation disabled), redirect.
+        if (res.data?.session?.user) {
+          redirectToFrom();
+        }
       }
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error?.message ?? String(error),
         variant: "destructive",
       });
     } finally {
@@ -107,10 +87,11 @@ export default function AuthPage() {
         }
       });
       if (error) throw error;
+      // OAuth will redirect externally — nothing more to do here.
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error?.message ?? String(error),
         variant: "destructive",
       });
       setLoading(false);
