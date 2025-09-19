@@ -3,6 +3,7 @@ import { ShoppingCart, Calendar, TrendingDown, BarChart, Smartphone, Brain, Shie
 import spendingChartHero from "@/assets/spending-chart-hero.jpg";
 import freshGroceries from "@/assets/fresh-groceries.jpg";
 import analyticsDashboard from "@/assets/analytics-dashboard.jpg";
+
 export default function Homepage() {
   const mainFeatures = [{
     icon: ShoppingCart,
@@ -29,6 +30,7 @@ export default function Homepage() {
     description: "Intelligent budget allocation with automated alerts, spending forecasts, and savings recommendations.",
     specs: ["Budget tracking", "Spending forecasts", "Alert system", "Savings analysis"]
   }];
+
   const technicalSpecs = [{
     category: "Performance",
     specs: [{
@@ -75,6 +77,7 @@ export default function Homepage() {
       value: "GDPR + CCPA certified"
     }]
   }];
+
   const stats = [{
     value: "89%",
     label: "Waste Reduction",
@@ -88,6 +91,7 @@ export default function Homepage() {
     label: "Uptime",
     icon: Activity
   }];
+
   const testimonials = [{
     name: "Sarah Chen",
     role: "Family of 4",
@@ -107,6 +111,7 @@ export default function Homepage() {
     rating: 5,
     avatar: "EW"
   }];
+
   const capabilities = [{
     icon: Cpu,
     title: "Neural Processing Unit",
@@ -128,6 +133,7 @@ export default function Homepage() {
     description: "Extensible platform built for future innovations",
     detail: "Component-based architecture allows seamless integration of new features without affecting existing functionality."
   }];
+
   const awards = [{
     name: "Best App Design",
     year: "2024",
@@ -145,57 +151,72 @@ export default function Homepage() {
     year: "2023",
     organization: "App Store Awards"
   }];
-  return <div className="min-h-screen bg-background">
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Mobile-only overrides - minimal and targeted */}
+      <style>{`
+        @media (max-width: 640px) {
+          /* Slightly tighten vertical spacing on mobile for every major section */
+          .mobile-tight { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+
+          /* Specifically center the final CTA content on mobile */
+          .cta-start-mobile { display: flex !important; justify-content: center !important; align-items: center !important; text-align: center !important; }
+
+          /* Hide arrow / icon on mobile */
+          .hide-on-mobile { display: none !important; }
+
+          /* Slightly tighter hero (optional extra) */
+          .hero-tight { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+        }
+      `}</style>
+
       {/* Hero Section */}
-<section className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-  <div className="absolute inset-0 bg-gradient-to-br from-surface to-surface-secondary"></div>
-  <div className="relative max-w-7xl mx-auto">
-    <div className="text-center mb-16 animate-fade-in">
-      <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground font-medium mb-4 animate-slide-in-left">
-        <Award className="w-4 h-4" />
-        <span>The #1 Food Tracking Tool</span>
-      </div>
-      <h1 className="text-4xl sm:text-6xl font-bold mb-6 tracking-tight leading-tight animate-fade-in-up text-black">
-        The most advanced grocery<br />
-        management system ever created.
-      </h1>
-      <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
-        Precision-engineered AI technology meets intuitive design. Track inventory, optimize nutrition, and reduce waste with unprecedented accuracy.
-      </p>
-      
-      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-scale-in">
-        <Link
-          to="/profile-selector"
-          className="px-8 py-4 rounded-full text-lg font-medium hover-lift text-white font-semibold transition-all duration-200 hover:opacity-90 flex justify-center sm:flex-row sm:items-center sm:space-x-2"
-          style={{ backgroundColor: '#0077ff' }}
-        >
-          <span>Get started</span>
-          {/* Hide icon on mobile */}
-          <ArrowRight className="w-5 h-5 hidden sm:inline-block" />
-        </Link>
+      <section className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden hero-tight mobile-tight">
+        <div className="absolute inset-0 bg-gradient-to-br from-surface to-surface-secondary"></div>
+        <div className="relative max-w-7xl mx-auto">
+          <div className="text-center mb-16 animate-fade-in">
+            <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground font-medium mb-4 animate-slide-in-left">
+              <Award className="w-4 h-4" />
+              <span>The #1 Food Tracking Tool</span>
+            </div>
+            <h1 className="text-4xl sm:text-6xl font-bold mb-6 tracking-tight leading-tight animate-fade-in-up text-black">
+              The most advanced grocery<br />
+              management system ever created.
+            </h1>
+            <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
+              Precision-engineered AI technology meets intuitive design. Track inventory, optimize nutrition, and reduce waste with unprecedented accuracy.
+            </p>
 
-        <button className="apple-button-secondary px-8 py-4 rounded-full text-lg font-medium hover-lift flex justify-center sm:flex-row sm:items-center sm:space-x-2">
-          {/* Hide icon on mobile */}
-          <PlayCircle className="w-5 h-5 hidden sm:inline-block" />
-          <span>Watch demo</span>
-        </button>
-      </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-scale-in">
+              <Link
+                to="/profile-selector"
+                className="px-8 py-4 rounded-full text-lg font-medium hover-lift text-white font-semibold transition-all duration-200 hover:opacity-90 flex justify-center sm:flex-row sm:items-center sm:space-x-2"
+                style={{ backgroundColor: '#0077ff' }}
+              >
+                <span>Get started</span>
+                {/* icon remains visible on larger screens, hidden on mobile by our CSS class */}
+                <ArrowRight className="w-5 h-5 hide-on-mobile sm:inline-block" />
+              </Link>
 
-      {/* Hero Visual - hide on mobile */}
-      <div className="max-w-5xl mx-auto animate-fade-in-up hidden sm:block">
-        <div className="glass-card rounded-3xl p-6 shadow-2xl animate-float">
-          <img src={spendingChartHero} alt="Modern Spending Chart Dashboard" className="w-full h-auto rounded-2xl" />
+              <button className="apple-button-secondary px-8 py-4 rounded-full text-lg font-medium hover-lift flex justify-center sm:flex-row sm:items-center sm:space-x-2">
+                <PlayCircle className="w-5 h-5 hide-on-mobile sm:inline-block" />
+                <span>Watch demo</span>
+              </button>
+            </div>
+
+            {/* Hero Visual - hide on mobile */}
+            <div className="max-w-5xl mx-auto animate-fade-in-up hidden sm:block">
+              <div className="glass-card rounded-3xl p-6 shadow-2xl animate-float">
+                <img src={spendingChartHero} alt="Modern Spending Chart Dashboard" className="w-full h-auto rounded-2xl" />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-      {/* Stats Section */}
-      
+      </section>
 
       {/* Core Features Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 mobile-tight">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl font-bold text-foreground mb-4">
@@ -208,38 +229,38 @@ export default function Homepage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {mainFeatures.map((feature, index) => {
-            const Icon = feature.icon;
-            return <div key={index} className="apple-card p-8 rounded-2xl hover-lift animate-fade-in-up" style={{
-              animationDelay: `${index * 0.2}s`
-            }}>
-                  <div className="flex items-center mb-6">
-                    <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mr-6">
-                      <Icon className="w-8 h-8 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-foreground">
-                        {feature.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground font-medium">{feature.subtitle}</p>
-                    </div>
+              const Icon = feature.icon;
+              return <div key={index} className="apple-card p-8 rounded-2xl hover-lift animate-fade-in-up" style={{
+                animationDelay: `${index * 0.2}s`
+              }}>
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mr-6">
+                    <Icon className="w-8 h-8 text-primary-foreground" />
                   </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed text-lg">
-                    {feature.description}
-                  </p>
-                  <div className="grid grid-cols-2 gap-4">
-                    {feature.specs.map((spec, specIndex) => <div key={specIndex} className="flex items-center text-sm text-muted-foreground">
-                        <CheckCircle className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
-                        {spec}
-                      </div>)}
+                  <div>
+                    <h3 className="text-2xl font-bold text-foreground">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground font-medium">{feature.subtitle}</p>
                   </div>
-                </div>;
-          })}
+                </div>
+                <p className="text-muted-foreground mb-6 leading-relaxed text-lg">
+                  {feature.description}
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  {feature.specs.map((spec, specIndex) => <div key={specIndex} className="flex items-center text-sm text-muted-foreground">
+                    <CheckCircle className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+                    {spec}
+                  </div>)}
+                </div>
+              </div>;
+            })}
           </div>
         </div>
       </section>
 
       {/* Technical Specifications */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-secondary">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-secondary mobile-tight">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl font-bold text-foreground mb-4">
@@ -252,67 +273,66 @@ export default function Homepage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {technicalSpecs.map((category, index) => <div key={index} className="apple-card p-8 rounded-2xl hover-lift animate-slide-in-left" style={{
-            animationDelay: `${index * 0.2}s`
-          }}>
-                <h3 className="text-xl font-bold text-foreground mb-6 border-b border-border pb-4">
-                  {category.category}
-                </h3>
-                <div className="space-y-4">
-                  {category.specs.map((spec, specIndex) => <div key={specIndex} className="flex justify-between items-center">
-                      <span className="text-muted-foreground">{spec.label}</span>
-                      <span className="text-foreground font-semibold">{spec.value}</span>
-                    </div>)}
-                </div>
-              </div>)}
+              animationDelay: `${index * 0.2}s`
+            }}>
+              <h3 className="text-xl font-bold text-foreground mb-6 border-b border-border pb-4">
+                {category.category}
+              </h3>
+              <div className="space-y-4">
+                {category.specs.map((spec, specIndex) => <div key={specIndex} className="flex justify-between items-center">
+                  <span className="text-muted-foreground">{spec.label}</span>
+                  <span className="text-foreground font-semibold">{spec.value}</span>
+                </div>)}
+              </div>
+            </div>)}
           </div>
         </div>
       </section>
 
       {/* Intelligence Showcase */}
-<section className="py-24 px-4 sm:px-6 lg:px-8">
-  <div className="max-w-7xl mx-auto">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-      <div className="animate-slide-in-left">
-        <h2 className="text-4xl font-bold text-foreground mb-6">
-          Intelligence that adapts<br />
-          <span className="text-primary">to your lifestyle.</span>
-        </h2>
-        <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-          Advanced machine learning algorithms continuously analyze your shopping patterns, 
-          dietary preferences, and consumption habits to deliver personalized insights.
-        </p>
-        
-        <div className="space-y-8">
-          {[{
-            title: "89% Waste Reduction",
-            description: "Our intelligent tracking system helps users reduce food waste by nearly 90% through smart expiration monitoring and consumption pattern analysis."
-          }, {
-            title: "150+ Countries",
-            description: "Trusted globally with users across six continents, adapting to local shopping habits, currencies, and dietary preferences worldwide."
-          }, {
-            title: "99.9% Uptime",
-            description: "Enterprise-grade infrastructure ensures your grocery data is always accessible when you need it, with industry-leading reliability standards."
-          }].map((item, index) => (
-            <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
-              <h3 className="font-bold text-foreground mb-2 text-lg">{item.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">{item.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      <div className="animate-slide-in-right hidden sm:block">
-        <div className="apple-card p-8 rounded-3xl shadow-2xl hover-scale">
-          <img src={freshGroceries} alt="Smart Grocery Organization" className="w-full h-auto rounded-2xl" />
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      <section className="py-24 px-4 sm:px-6 lg:px-8 mobile-tight">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="animate-slide-in-left">
+              <h2 className="text-4xl font-bold text-foreground mb-6">
+                Intelligence that adapts<br />
+                <span className="text-primary">to your lifestyle.</span>
+              </h2>
+              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                Advanced machine learning algorithms continuously analyze your shopping patterns, 
+                dietary preferences, and consumption habits to deliver personalized insights.
+              </p>
 
+              <div className="space-y-8">
+                {[{
+                  title: "89% Waste Reduction",
+                  description: "Our intelligent tracking system helps users reduce food waste by nearly 90% through smart expiration monitoring and consumption pattern analysis."
+                }, {
+                  title: "150+ Countries",
+                  description: "Trusted globally with users across six continents, adapting to local shopping habits, currencies, and dietary preferences worldwide."
+                }, {
+                  title: "99.9% Uptime",
+                  description: "Enterprise-grade infrastructure ensures your grocery data is always accessible when you need it, with industry-leading reliability standards."
+                }].map((item, index) => (
+                  <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
+                    <h3 className="font-bold text-foreground mb-2 text-lg">{item.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="animate-slide-in-right hidden sm:block">
+              <div className="apple-card p-8 rounded-3xl shadow-2xl hover-scale">
+                <img src={freshGroceries} alt="Smart Grocery Organization" className="w-full h-auto rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Analytics Showcase */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-secondary">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-secondary mobile-tight">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="animate-slide-in-left">
@@ -320,7 +340,7 @@ export default function Homepage() {
                 <img src={analyticsDashboard} alt="Advanced Analytics Dashboard" className="w-full h-auto rounded-2xl" />
               </div>
             </div>
-            
+
             <div className="animate-slide-in-right">
               <h2 className="text-4xl font-bold text-foreground mb-6">
                 Advanced analytics.<br />
@@ -330,28 +350,28 @@ export default function Homepage() {
                 Comprehensive data visualization transforms your grocery habits into meaningful insights. 
                 Track every metric that matters with precision and clarity.
               </p>
-              
+
               <div className="grid grid-cols-2 gap-6 mb-8">
                 {[{
-                value: "$2,840",
-                label: "Annual savings potential"
-              }, {
-                value: "94%",
-                label: "Prediction accuracy"
-              }, {
-                value: "8.7/10",
-                label: "Nutrition optimization"
-              }, {
-                value: "15 min",
-                label: "Weekly time saved"
-              }].map((metric, index) => <div key={index} className="apple-surface p-6 rounded-xl animate-scale-in" style={{
-                animationDelay: `${index * 0.1}s`
-              }}>
-                    <div className="text-2xl font-bold text-foreground mb-1">{metric.value}</div>
-                    <div className="text-xs text-muted-foreground">{metric.label}</div>
-                  </div>)}
+                  value: "$2,840",
+                  label: "Annual savings potential"
+                }, {
+                  value: "94%",
+                  label: "Prediction accuracy"
+                }, {
+                  value: "8.7/10",
+                  label: "Nutrition optimization"
+                }, {
+                  value: "15 min",
+                  label: "Weekly time saved"
+                }].map((metric, index) => <div key={index} className="apple-surface p-6 rounded-xl animate-scale-in" style={{
+                  animationDelay: `${index * 0.1}s`
+                }}>
+                  <div className="text-2xl font-bold text-foreground mb-1">{metric.value}</div>
+                  <div className="text-xs text-muted-foreground">{metric.label}</div>
+                </div>)}
               </div>
-              
+
               <div className="p-6 bg-surface rounded-xl border border-border">
                 <p className="text-muted-foreground">
                   Real-time data processing with machine learning optimization delivers insights that adapt to your changing needs.
@@ -362,15 +382,8 @@ export default function Homepage() {
         </div>
       </section>
 
-    
-
-      {/* Awards & Recognition */}
-
-
-      {/* Testimonials */}
-      
       {/* Call to Action */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-foreground text-background">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-foreground text-background mobile-tight">
         <div className="max-w-4xl mx-auto text-center animate-fade-in">
           <h2 className="text-4xl font-bold mb-6">
             Ready to revolutionize your grocery management?
@@ -379,15 +392,21 @@ export default function Homepage() {
             Join millions of users who have transformed their shopping habits with our AI-powered platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/profile-selector" className="bg-background text-foreground px-8 py-4 rounded-full font-bold text-lg hover-lift flex items-center space-x-2">
+            {/* final CTA: centered text on mobile, arrow hidden on mobile */}
+            <Link
+              to="/profile-selector"
+              className="bg-background text-foreground px-8 py-4 rounded-full font-bold text-lg hover-lift flex items-center justify-center sm:justify-start sm:space-x-2 cta-start-mobile"
+            >
               <span>Start Free Today</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 hide-on-mobile sm:inline-block" />
             </Link>
+
             <Link to="/pricing" className="border-2 border-background text-background px-8 py-4 rounded-full font-bold text-lg hover:bg-background hover:text-foreground transition-colors hover-lift">
               View Pricing
             </Link>
           </div>
         </div>
       </section>
-    </div>;
+    </div>
+  );
 }
