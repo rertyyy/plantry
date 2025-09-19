@@ -176,36 +176,32 @@ export default function ProfileSelectorPage() {
             </div>
 
             {/* Edit/Delete buttons BELOW the card (shown on hover) */}
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2 justify-center mt-2 w-full">
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEditProfile(profile);
-                }}
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 p-0"
-              >
-                <Edit2 className="w-3 h-3" />
-              </Button>
-              {profiles.length > 1 && (
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteProfile(profile.id);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    ))}
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 will-change-opacity pointer-events-none group-hover:pointer-events-auto flex space-x-2 justify-center mt-2 w-full">
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditProfile(profile);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-foreground"   // explicit text color for icon
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </Button>
+                  {profiles.length > 1 && (
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProfile(profile.id);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 pointer-events-auto"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
     
     {/* Add Profile Button */}
     {profiles.length < 5 && (
