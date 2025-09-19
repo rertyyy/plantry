@@ -73,7 +73,7 @@ export default function ProfileSelectorPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-surface-secondary">
       {/* Header */}
       <div className="pt-8 pb-4">
-        <div className="max-w-6xl mx-auto px-[35px]">
+        <div className="max-w-6xl mx-auto px-[45px]">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -101,7 +101,7 @@ export default function ProfileSelectorPage() {
     {profiles.map((profile) => (
       <div key={profile.id} className="group relative">
         {editingProfile === profile.id ? (
-          <div className="bg-surface border border-border rounded-3xl p-8 space-y-4 aspect-square flex flex-col justify-center relative">
+          <div className="bg-surface border border-border rounded-3xl p-8 aspect-square flex flex-col justify-center relative">
             <div 
               className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold self-center"
               style={{ backgroundColor: editColor }}
@@ -109,7 +109,7 @@ export default function ProfileSelectorPage() {
               {getInitials(editName || profile.name)}
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-3 mt-4">
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
@@ -154,6 +154,7 @@ export default function ProfileSelectorPage() {
             onClick={() => handleProfileSelect(profile)}
             className="bg-surface border border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 group aspect-square flex flex-col justify-between relative"
           >
+            {/* Top section */}
             <div>
               <div 
                 className="w-24 h-24 rounded-3xl mx-auto mb-6 self-center flex items-center justify-center text-white text-2xl font-semibold"
@@ -162,13 +163,13 @@ export default function ProfileSelectorPage() {
                 {getInitials(profile.name)}
               </div>
               
-              <h3 className="font-semibold text-foreground mb-3 text-lg">
+              <h3 className="font-semibold text-foreground text-lg">
                 {profile.name}
               </h3>
             </div>
 
-            {/* Edit/Delete buttons */}
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-3 flex space-x-2 justify-center">
+            {/* Bottom buttons */}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2 justify-center">
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -222,6 +223,7 @@ export default function ProfileSelectorPage() {
     )}
   </div>
 </div>
+
 
       {/* Create Profile Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
