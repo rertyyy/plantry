@@ -83,15 +83,15 @@ export default function ProfileSelectorPage() {
                 All profiles share the same household groceries and pantry
               </p>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/settings')}
-              className="flex items-center space-x-2"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
-            </Button>
-          </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/settings')}
+                className="hidden sm:flex items-center space-x-2"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Settings</span>
+              </Button>
+            </div>
         </div>
       </div>
 
