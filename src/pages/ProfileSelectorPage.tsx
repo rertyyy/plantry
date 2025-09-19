@@ -73,7 +73,7 @@ export default function ProfileSelectorPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-surface-secondary">
       {/* Header */}
       <div className="pt-8 pb-4">
-        <div className="max-w-6xl mx-auto px-[55px]">
+        <div className="max-w-5xl mx-auto px-[55px]">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
