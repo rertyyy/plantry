@@ -96,131 +96,132 @@ export default function ProfileSelectorPage() {
       </div>
 
       {/* Profiles Grid */}
-      <div className="max-w-5xl mx-auto px-[25px] py-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
-          {profiles.map((profile) => (
-            <div key={profile.id} className="group relative">
-              {editingProfile === profile.id ? (
-                <div className="bg-surface border border-border rounded-3xl p-8 space-y-4 aspect-square flex flex-col justify-center">
-                  <div 
-                    className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold self-center"
-                    style={{ backgroundColor: editColor }}
-                  >
-                    {getInitials(editName || profile.name)}
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Input
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      placeholder="Profile name"
-                      className="text-center"
-                    />
-                    
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {AVATAR_COLORS.slice(0, 6).map((color) => (
-                        <button
-                          key={color}
-                          onClick={() => setEditColor(color)}
-                          className={`w-6 h-6 rounded-full border-2 ${
-                            editColor === color ? 'border-foreground' : 'border-transparent'
-                          }`}
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <Button
-                        onClick={handleSaveEdit}
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <Save className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        onClick={() => setEditingProfile(null)}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div 
-                  onClick={() => handleProfileSelect(profile)}
-                  className="bg-surface border border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 group aspect-square flex flex-col justify-center"
-                >
-                  <div 
-                    className="w-24 h-24 rounded-3xl mx-auto mb-6 self-center flex items-center justify-center text-white text-2xl font-semibold"
-                    style={{ backgroundColor: profile.color }}
-                  >
-                    {getInitials(profile.name)}
-                  </div>
-                  
-                  <h3 className="font-semibold text-foreground mb-3 text-lg">
-                    {profile.name}
-                  </h3>
-                  
-                  {/* removed the "Shared household access" sentence as requested */}
-
-                  {selectedProfile?.id === profile.id && (
-                    <div className="hidden sm:inline-flex items-center justify-center bg-apple-blue text-apple-blue-foreground text-xs font-medium px-3 py-1 rounded-full">
-                      Currently selected
-                    </div>
-                  )}
-                  
-                  {/* Edit/Delete buttons */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-3 flex space-x-2 justify-center">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditProfile(profile);
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                    </Button>
-                    {profiles.length > 1 && (
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteProfile(profile.id);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-          
-          {/* Add Profile Button */}
-          {profiles.length < 5 && (
+<div className="max-w-5xl mx-auto px-[25px] py-8">
+  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+    {profiles.map((profile) => (
+      <div key={profile.id} className="group relative">
+        {editingProfile === profile.id ? (
+          <div className="bg-surface border border-border rounded-3xl p-8 space-y-4 aspect-square flex flex-col justify-center relative">
             <div 
-              onClick={() => setShowCreateModal(true)}
-              className="bg-surface border-2 border-dashed border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:border-primary/50 flex flex-col items-center justify-center aspect-square"
+              className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold self-center"
+              style={{ backgroundColor: editColor }}
             >
-              <div className="w-24 h-24 rounded-3xl bg-surface-secondary border border-border flex items-center justify-center mb-6">
-                <Plus className="w-10 h-10 text-muted-foreground" />
+              {getInitials(editName || profile.name)}
+            </div>
+            
+            <div className="space-y-3">
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Profile name"
+                className="text-center"
+              />
+              
+              <div className="flex flex-wrap gap-2 justify-center">
+                {AVATAR_COLORS.slice(0, 6).map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setEditColor(color)}
+                    className={`w-6 h-6 rounded-full border-2 ${
+                      editColor === color ? 'border-foreground' : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
               </div>
-              <h3 className="font-semibold text-muted-foreground text-lg">
-                Add Profile
+              
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handleSaveEdit}
+                  size="sm"
+                  className="flex-1"
+                >
+                  <Save className="w-3 h-3" />
+                </Button>
+                <Button
+                  onClick={() => setEditingProfile(null)}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div 
+            onClick={() => handleProfileSelect(profile)}
+            className="bg-surface border border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 group aspect-square flex flex-col justify-between relative"
+          >
+            <div>
+              <div 
+                className="w-24 h-24 rounded-3xl mx-auto mb-6 self-center flex items-center justify-center text-white text-2xl font-semibold"
+                style={{ backgroundColor: profile.color }}
+              >
+                {getInitials(profile.name)}
+              </div>
+              
+              <h3 className="font-semibold text-foreground mb-3 text-lg">
+                {profile.name}
               </h3>
             </div>
-          )}
-        </div>
+
+            {/* Edit/Delete buttons */}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-3 flex space-x-2 justify-center">
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditProfile(profile);
+                }}
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+              >
+                <Edit2 className="w-3 h-3" />
+              </Button>
+              {profiles.length > 1 && (
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteProfile(profile.id);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+
+            {/* Currently Selected badge */}
+            {selectedProfile?.id === profile.id && (
+              <div className="absolute top-2 right-2 bg-apple-blue text-apple-blue-foreground text-xs font-medium px-2 py-0.5 rounded-full">
+                Selected
+              </div>
+            )}
+          </div>
+        )}
       </div>
+    ))}
+    
+    {/* Add Profile Button */}
+    {profiles.length < 5 && (
+      <div 
+        onClick={() => setShowCreateModal(true)}
+        className="bg-surface border-2 border-dashed border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:border-primary/50 flex flex-col items-center justify-center aspect-square relative"
+      >
+        <div className="w-24 h-24 rounded-3xl bg-surface-secondary border border-border flex items-center justify-center mb-6">
+          <Plus className="w-10 h-10 text-muted-foreground" />
+        </div>
+        <h3 className="font-semibold text-muted-foreground text-lg">
+          Add Profile
+        </h3>
+      </div>
+    )}
+  </div>
+</div>
 
       {/* Create Profile Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
