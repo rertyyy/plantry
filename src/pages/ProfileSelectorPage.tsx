@@ -73,7 +73,7 @@ export default function ProfileSelectorPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-surface-secondary">
       {/* Header */}
       <div className="pt-8 pb-4">
-        <div className="max-w-6xl mx-auto px-[45px]">
+        <div className="max-w-6xl mx-auto px-[55px]">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -97,13 +97,13 @@ export default function ProfileSelectorPage() {
 
       {/* Profiles Grid */}
 <div className="max-w-5xl mx-auto px-[25px] py-8">
-  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
     {profiles.map((profile) => (
       <div key={profile.id} className="group relative">
         {editingProfile === profile.id ? (
-          <div className="bg-surface border border-border rounded-3xl p-8 aspect-square flex flex-col justify-center relative">
+          <div className="bg-surface border border-border rounded-3xl p-6 aspect-square flex flex-col justify-center relative">
             <div 
-              className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold self-center"
+              className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold self-center"
               style={{ backgroundColor: editColor }}
             >
               {getInitials(editName || profile.name)}
@@ -152,12 +152,12 @@ export default function ProfileSelectorPage() {
         ) : (
           <div 
             onClick={() => handleProfileSelect(profile)}
-            className="bg-surface border border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 group aspect-square flex flex-col justify-between relative"
+            className="bg-surface border border-border rounded-3xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 group aspect-square flex flex-col justify-between relative"
           >
             {/* Top section */}
             <div>
               <div 
-                className="w-24 h-24 rounded-3xl mx-auto mb-6 self-center flex items-center justify-center text-white text-2xl font-semibold"
+                className="w-20 h-20 rounded-3xl mx-auto mb-4 self-center flex items-center justify-center text-white text-2xl font-semibold"
                 style={{ backgroundColor: profile.color }}
               >
                 {getInitials(profile.name)}
@@ -211,9 +211,9 @@ export default function ProfileSelectorPage() {
     {profiles.length < 5 && (
       <div 
         onClick={() => setShowCreateModal(true)}
-        className="bg-surface border-2 border-dashed border-border rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:border-primary/50 flex flex-col items-center justify-center aspect-square relative"
+        className="bg-surface border-2 border-dashed border-border rounded-3xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:border-primary/50 flex flex-col items-center justify-center aspect-square relative"
       >
-        <div className="w-24 h-24 rounded-3xl bg-surface-secondary border border-border flex items-center justify-center mb-6">
+        <div className="w-20 h-20 rounded-3xl bg-surface-secondary border border-border flex items-center justify-center mb-4">
           <Plus className="w-10 h-10 text-muted-foreground" />
         </div>
         <h3 className="font-semibold text-muted-foreground text-lg">
@@ -223,7 +223,6 @@ export default function ProfileSelectorPage() {
     )}
   </div>
 </div>
-
 
       {/* Create Profile Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
