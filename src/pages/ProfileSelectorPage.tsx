@@ -70,7 +70,7 @@ export default function ProfileSelectorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-surface-secondary">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background">
       {/* Header */}
       <div className="pt-8 pb-4">
         <div className="max-w-[1060px] mx-auto px-[55px]">
