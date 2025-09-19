@@ -95,15 +95,15 @@ export default function ProfileSelectorPage() {
         </div>
       </div>
 
-      {/* Profiles Grid */}
+     {/* Profiles Grid */}
 <div className="max-w-5xl mx-auto px-[25px] py-8">
-  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
     {profiles.map((profile) => (
       <div key={profile.id} className="group relative flex flex-col items-center w-full">
         {editingProfile === profile.id ? (
           <div className="bg-surface border border-white sm:border-border rounded-3xl p-6 aspect-square flex flex-col justify-center items-center relative w-full">
             <div 
-              className="w-24 h-24 rounded-3xl flex items-center justify-center text-white text-3xl font-bold"
+              className="w-28 h-28 rounded-3xl flex items-center justify-center text-white text-3xl font-bold"
               style={{ backgroundColor: editColor }}
             >
               {getInitials(editName || profile.name)}
@@ -213,16 +213,17 @@ export default function ProfileSelectorPage() {
         onClick={() => setShowCreateModal(true)}
         className="bg-surface border-2 border-dashed border-white sm:border-border rounded-3xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:border-primary/50 flex flex-col items-center justify-center aspect-square relative w-full"
       >
-        <div className="w-20 h-20 rounded-3xl bg-surface-secondary border border-border flex items-center justify-center mb-4">
-          <Plus className="w-10 h-10 text-muted-foreground" />
+        <div className="w-28 h-28 rounded-3xl bg-surface-secondary border border-border flex items-center justify-center mb-4">
+          <Plus className="w-12 h-12 text-muted-foreground" />
         </div>
-        <h3 className="font-semibold text-muted-foreground text-lg">
+        <h3 className="font-semibold text-muted-foreground text-xl">
           Add Profile
         </h3>
       </div>
     )}
   </div>
 </div>
+
 
       {/* Create Profile Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
