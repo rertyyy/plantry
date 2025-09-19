@@ -99,17 +99,17 @@ export default function ProfileSelectorPage() {
 <div className="max-w-5xl mx-auto px-[25px] py-8">
   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
     {profiles.map((profile) => (
-      <div key={profile.id} className="group relative">
+      <div key={profile.id} className="group relative flex flex-col items-center">
         {editingProfile === profile.id ? (
-          <div className="bg-surface border border-border rounded-3xl p-6 aspect-square flex flex-col justify-center relative">
+          <div className="bg-surface border border-border rounded-3xl p-6 aspect-square flex flex-col justify-center items-center relative w-full">
             <div 
-              className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-semibold self-center"
+              className="w-24 h-24 rounded-3xl flex items-center justify-center text-white text-3xl font-bold"
               style={{ backgroundColor: editColor }}
             >
               {getInitials(editName || profile.name)}
             </div>
             
-            <div className="space-y-3 mt-4">
+            <div className="space-y-3 mt-6 w-full px-4">
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
@@ -150,26 +150,33 @@ export default function ProfileSelectorPage() {
             </div>
           </div>
         ) : (
-          <div 
-            onClick={() => handleProfileSelect(profile)}
-            className="bg-surface border border-border rounded-3xl p-6 text-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 group aspect-square flex flex-col justify-between relative"
-          >
-            {/* Top section */}
-            <div>
+          <>
+            {/* Square Profile Card */}
+            <div 
+              onClick={() => handleProfileSelect(profile)}
+              className="bg-surface border border-border rounded-3xl p-6 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-primary/50 aspect-square flex flex-col justify-center items-center text-center relative w-full"
+            >
               <div 
-                className="w-20 h-20 rounded-3xl mx-auto mb-4 self-center flex items-center justify-center text-white text-2xl font-semibold"
+                className="w-28 h-28 rounded-3xl flex items-center justify-center text-white text-4xl font-bold mb-4"
                 style={{ backgroundColor: profile.color }}
               >
                 {getInitials(profile.name)}
               </div>
               
-              <h3 className="font-semibold text-foreground text-lg">
+              <h3 className="font-semibold text-foreground text-xl">
                 {profile.name}
               </h3>
+
+              {/* Currently Selected badge */}
+              {selectedProfile?.id === profile.id && (
+                <div className="absolute top-2 right-2 bg-apple-blue text-apple-blue-foreground text-xs font-medium px-2 py-0.5 rounded-full">
+                  Selected
+                </div>
+              )}
             </div>
 
-            {/* Bottom buttons */}
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2 justify-center">
+            {/* Edit/Delete buttons BELOW the card (shown on hover) */}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2 justify-center mt-2">
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -195,14 +202,7 @@ export default function ProfileSelectorPage() {
                 </Button>
               )}
             </div>
-
-            {/* Currently Selected badge */}
-            {selectedProfile?.id === profile.id && (
-              <div className="absolute top-2 right-2 bg-apple-blue text-apple-blue-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-                Selected
-              </div>
-            )}
-          </div>
+          </>
         )}
       </div>
     ))}
