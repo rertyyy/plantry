@@ -184,7 +184,7 @@ export default function ProfileSelectorPage() {
                 }}
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0 text-foreground bg-transparent border border-transparent hover:border-border transition-colors"
+                className="h-8 w-8 p-0 text-foreground bg-transparent border border-transparent hover:bg-foreground/10 hover:border-foreground transition-colors"
                   >
                 <Edit2 className="w-3 h-3" />
               </Button>
