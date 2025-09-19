@@ -158,7 +158,7 @@ export default function Homepage() {
       <style>{`
         @media (max-width: 640px) {
           /* Slightly tighten vertical spacing on mobile for every major section */
-          .mobile-tight { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+          .mobile-tight { padding-top: 2rem !important; padding-bottom: 2rem !important; }
 
           /* Specifically center the final CTA content on mobile */
           .cta-start-mobile { display: flex !important; justify-content: center !important; align-items: center !important; text-align: center !important; }
@@ -167,7 +167,7 @@ export default function Homepage() {
           .hide-on-mobile { display: none !important; }
 
           /* Slightly tighter hero (optional extra) */
-          .hero-tight { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+          .hero-tight { padding-top: 2rem !important; padding-bottom: 2rem !important; }
         }
       `}</style>
 
