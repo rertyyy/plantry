@@ -52,7 +52,7 @@ export default function PricingPage() {
     if (planName === "Free") {
       navigate("/");
     } else if (planName === "Pro") {
-      handlePayPalCheckout("P-6U060289J3554860MNC6F6JQ", "pro");
+      handlePayPalCheckout("P-4H3760406Y7285539NDGSL6A", "pro");
     } else if (planName === "Pro Annual") {
       handlePayPalCheckout("P-84U50018700438446NC6F7JA", "pro_annual");
     }
