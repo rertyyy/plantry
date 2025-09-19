@@ -74,7 +74,7 @@ export default function PricingPage() {
     },
     {
       name: "Pro",
-      price: "£9.99",
+      price: "£4.99",
       period: "/month",
       description: "For serious meal planners",
       features: [
