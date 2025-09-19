@@ -6,23 +6,22 @@
 
 @layer base {
   :root {
-    /* Core Plantry palette (keeps same variable names) */
-    /* Converted to H S% L% triplets where appropriate so hsl(var(--...)) calls continue working */
-    --background: 0 0% 96.1%;          /* very light: #f5f5f5 */
-    --foreground: 0 0% 0%;             /* black: #000000 */
+    /* Core monochrome palette */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
     
-    /* Surface colors (soft green tint for Plantry where helpful) */
-    --surface: 135 75% 96.9%;          /* light green: #f1fdf4 */
-    --surface-secondary: 0 0% 100%;    /* white */
-    --surface-tertiary: 0 0% 98%;
+    /* Surface colors */
+    --surface: 0 0% 100%;
+    --surface-secondary: 0 0% 98%;
+    --surface-tertiary: 0 0% 96%;
     
-    /* Grey scale system (keep original variable names; tuned middle greys) */
+    /* Grey scale system */
     --grey-50: 0 0% 98%;
     --grey-100: 0 0% 96%;
     --grey-200: 0 0% 93%;
     --grey-300: 0 0% 87%;
-    --grey-400: 220 8.9% 46.1%;         /* #6B7280 - primary gray */
-    --grey-500: 220 8.9% 46.1%;
+    --grey-400: 0 0% 74%;
+    --grey-500: 0 0% 54%;
     --grey-600: 0 0% 38%;
     --grey-700: 0 0% 26%;
     --grey-800: 0 0% 15%;
@@ -33,34 +32,32 @@
     --card-foreground: 0 0% 0%;
     --card-secondary: 0 0% 98%;
     
-    /* Primary brand (Plantry green) */
-    --primary: 142.3 75.3% 36.5%;       /* #17A34B */
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 142.3 75.3% 46.5%; /* lighter variant for hover */
+    --primary-muted: 217 91% 40%;
     
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 0%;
     --secondary-hover: 0 0% 93%;
     
     --muted: 0 0% 96%;
-    --muted-foreground: 217.9 10.6% 64.9%; /* #9CA3AF */
+    --muted-foreground: 0 0% 54%;
     
-    /* Accent (teal) */
-    --accent: 159.9 82.3% 39.8%;        /* #12B981 */
+    --accent: 0 0% 0%;
     --accent-foreground: 0 0% 100%;
     
     --border: 0 0% 93%;
     --border-muted: 0 0% 96%;
     --input: 0 0% 100%;
     --input-border: 0 0% 87%;
-    --ring: 142.3 75.3% 36.5%;          /* use brand green for focus ring */
+    --ring: 0 0% 0%;
     
-    /* Apple-style shadows (slight green tint to feel cohesive, low opacity) */
-    --shadow-sm: 0 1px 2px 0 hsl(142.3 75.3% 36.5% / 0.04);
-    --shadow: 0 1px 3px 0 hsl(142.3 75.3% 36.5% / 0.06), 0 1px 2px -1px hsl(142.3 75.3% 36.5% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(142.3 75.3% 36.5% / 0.06), 0 2px 4px -2px hsl(142.3 75.3% 36.5% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(142.3 75.3% 36.5% / 0.07), 0 4px 6px -4px hsl(142.3 75.3% 36.5% / 0.06);
-    --shadow-xl: 0 20px 25px -5px hsl(142.3 75.3% 36.5% / 0.08), 0 8px 10px -6px hsl(142.3 75.3% 36.5% / 0.07);
+    /* Apple-style shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
     
     /* Border radius system */
     --radius-sm: 0.375rem;
@@ -69,7 +66,7 @@
     --radius-lg: 1rem;
     --radius-xl: 1.5rem;
     
-    /* Apple Blue (kept for compatibility) */
+    /* Apple Blue */
     --apple-blue: 209 100% 60%;
     --apple-blue-foreground: 0 0% 100%;
     
@@ -101,7 +98,7 @@
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 0 0% 91%;
-    --sidebar-ring: 142.3 75.3% 36.5%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   .dark {
