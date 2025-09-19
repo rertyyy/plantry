@@ -1,20 +1,23 @@
+// src/components/ProtectedRoute.tsx
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { useProfile } from '@/contexts/ProfileContext'; // <-- ADDED
+import { useProfile } from '@/contexts/ProfileContext';
 import { User } from '@supabase/supabase-js';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  user: User | null;
-  // authChecked removed from props
+  user?: User | null; // optional now — we'll prefer the context user
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, user }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, user: userProp }) => {
   const { hasAccess, loading } = useSubscription();
-  const { authChecked } = useProfile(); // <-- NOW USED FROM CONTEXT
+  const { authChecked, user: userFromContext } = useProfile(); // read auth + user from context
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Prefer the context user; fall back to the prop (keeps backward compatibility).
+  const user = userFromContext ?? userProp ?? null;
 
   useEffect(() => {
     // Wait for auth rehydration AND subscription loading to finish before redirecting
