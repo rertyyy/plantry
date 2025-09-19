@@ -225,7 +225,7 @@ export default function SettingsPage() {
     },
     {
       name: "Pro",
-      price: "£9.99",
+      price: "£4.99",
       period: "/month",
       features: [
         "Unlimited grocery items",
@@ -273,7 +273,7 @@ export default function SettingsPage() {
       // You can find these in your PayPal Developer Dashboard under "Products & Plans"
       const paypalPlans = {
         pro: { 
-          planId: "P-6U060289J3554860MNC6F6JQ", // PayPal Pro plan ID
+          planId: "P-4H3760406Y7285539NDGSL6A", // PayPal Pro plan ID
           planType: "pro" 
         },
         annual: { 
