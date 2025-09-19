@@ -90,13 +90,12 @@ export default function PricingPage() {
     },
     {
       name: "Pro Annual",
-      price: "£8.99",
+      price: "£3.99",
       period: "/month",
-      description: "Best value - save £12",
-      yearlyPrice: "£107.88/year",
+      description: "High value, £12 off!",
+      yearlyPrice: "£47.88/year",
       features: [
         "Everything in Pro",
-        "2 months free",
         "Annual billing",
         "Premium analytics",
         "Early access to new features",
