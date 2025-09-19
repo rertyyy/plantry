@@ -184,7 +184,7 @@ export default function ProfileSelectorPage() {
                 }}
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0 text-foreground bg-transparent border border-border"
+                className="h-8 w-8 p-0 text-foreground bg-transparent border border-transparent hover:border-border transition-colors"
                   >
                 <Edit2 className="w-3 h-3" />
               </Button>
@@ -196,7 +196,7 @@ export default function ProfileSelectorPage() {
                   }}
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 bg-transparent text-red-600 border border-red-600 hover:text-red-700 hover:bg-red-50"
+                 className="h-8 w-8 p-0 bg-transparent text-red-600 border border-transparent hover:text-red-700 hover:bg-red-50 hover:border-red-600 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                 </Button>
