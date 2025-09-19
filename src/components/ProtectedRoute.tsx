@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useProfile } from '@/contexts/ProfileContext'; // <-- ADDED
 import { User } from '@supabase/supabase-js';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   user: User | null;
-  authChecked: boolean; // added
+  // authChecked removed from props
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, user, authChecked }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, user }) => {
   const { hasAccess, loading } = useSubscription();
+  const { authChecked } = useProfile(); // <-- NOW USED FROM CONTEXT
   const navigate = useNavigate();
   const location = useLocation();
 
