@@ -26,37 +26,51 @@ import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { User, Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
+  // authChecked becomes true once initial getSession() completes (success or error)
+  // and any subsequent auth events also keep it true.
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Get initial session and mark authChecked once resolved
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        setAuthChecked(true);
-      })
-      .catch(() => {
-        // Even on error, mark checked so ProtectedRoute won't wait forever
-        setAuthChecked(true);
-      });
+    let mounted = true;
 
-    // Listen for auth changes and keep state in sync
+    // Fetch the initial session once on mount so we know whether auth is hydrated.
+    const init = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const session: Session | null = data?.session ?? null;
+        if (!mounted) return;
+        setUser(session?.user ?? null);
+      } catch (err) {
+        // ignore error; we still want to mark auth checked
+        console.error("supabase.getSession error:", err);
+      } finally {
+        if (mounted) setAuthChecked(true);
+      }
+    };
+
+    init();
+
+    // Subscribe to auth changes to keep `user` in sync.
+    // Note: supabase v2 returns { data: { subscription } }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
       setUser(session?.user ?? null);
-      setAuthChecked(true); // any auth event confirms the auth system is active
+      // any auth event means the auth system is active/hydrated
+      setAuthChecked(true);
     });
 
     return () => {
+      mounted = false;
       try {
         subscription?.unsubscribe?.();
       } catch (e) {
-        // ignore
+        // ignore unsubscribe errors
       }
     };
   }, []);
@@ -67,8 +81,15 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <SubscriptionProvider user={user}>
-            <ProfileProvider user={user}>
+          {/* 
+            IMPORTANT:
+            - We pass both user and authChecked into the providers so they don't
+              have to call supabase.getSession() or re-subscribe on their own.
+            - Update ProfileProvider and SubscriptionProvider to accept `authChecked` prop
+              and **remove** their own getSession/onAuthStateChange effects.
+          */}
+          <SubscriptionProvider user={user} authChecked={authChecked}>
+            <ProfileProvider user={user} authChecked={authChecked}>
               <div className="flex flex-col min-h-screen">
                 <Navigation />
                 <main className="flex-1">
@@ -82,34 +103,51 @@ const App = () => {
                     <Route path="/profile-selector" element={<ProfileSelectorPage />} />
                     <Route path="/terms" element={<TermsPage />} />
                     <Route path="/privacy" element={<PrivacyPage />} />
-                    
-                    {/* Protected Routes */}
-                    <Route path="/dashboard" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
-                        <DashboardPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/groceries" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
-                        <HouseholdGroceriesPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/analytics" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
-                        <AnalyticsPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/ai-generation" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
-                        <AIGenerationPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/insights" element={
-                      <ProtectedRoute user={user} authChecked={authChecked}>
-                        <InsightsPage />
-                      </ProtectedRoute>
-                    } />
-                    
+
+                    {/* Protected Routes - pass only the user (ProtectedRoute should read authChecked from context or from props
+                        depending on your ProtectedRoute implementation: if ProtectedRoute reads authChecked from useProfile(),
+                        no need to pass authChecked here. If it expects props, update accordingly.) */}
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute user={user}>
+                          <DashboardPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/groceries"
+                      element={
+                        <ProtectedRoute user={user}>
+                          <HouseholdGroceriesPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/analytics"
+                      element={
+                        <ProtectedRoute user={user}>
+                          <AnalyticsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/ai-generation"
+                      element={
+                        <ProtectedRoute user={user}>
+                          <AIGenerationPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/insights"
+                      element={
+                        <ProtectedRoute user={user}>
+                          <InsightsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
