@@ -176,15 +176,15 @@ export default function ProfileSelectorPage() {
             </div>
 
             {/* Edit/Delete buttons BELOW the card (shown on hover) */}
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto flex space-x-2 justify-center mt-2 w-full">
-              <Button
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto invisible group-hover:visible will-change-opacity flex space-x-2 justify-center mt-2 w-full">
+                <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEditProfile(profile);
                 }}
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0 text-foreground"
+                className="h-8 w-8 p-0 text-foreground bg-transparent"
               >
                 <Edit2 className="w-3 h-3" />
               </Button>
@@ -196,7 +196,7 @@ export default function ProfileSelectorPage() {
                   }}
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="h-8 w-8 p-0 bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="w-3 h-3" />
                 </Button>
