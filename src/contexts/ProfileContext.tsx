@@ -20,6 +20,7 @@ interface ProfileContextType {
   profiles: Profile[];
   selectedProfile: Profile | null;
   loading: boolean;
+  authChecked: boolean; // new: true only after Supabase hydration
   selectProfile: (profile: Profile) => void;
   createProfile: (name: string, color: string) => Promise<void>;
   updateProfile: (id: string, updates: Partial<Profile>) => Promise<void>;
@@ -47,9 +48,41 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children, user
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false); // <-- new
   const { toast } = useToast();
 
-  // Load selected profile from localStorage
+  // Wait for Supabase to hydrate session; only then mark authChecked = true
+  useEffect(() => {
+    let mounted = true;
+    // initial check
+    const check = async () => {
+      try {
+        // supabase v2: auth.getSession() returns { data: { session } }
+        await supabase.auth.getSession();
+      } catch (e) {
+        // ignore - we still want to mark checked
+      } finally {
+        if (mounted) setAuthChecked(true);
+      }
+    };
+
+    check();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, _session) => {
+      // when auth state changes (sign in/out), we consider the auth hydrated
+      if (mounted) setAuthChecked(true);
+    });
+
+    return () => {
+      mounted = false;
+      // unsubscribe if available
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
+
+  // Load selected profile from localStorage once profiles are loaded
   useEffect(() => {
     if (user && profiles.length > 0) {
       const savedProfileId = localStorage.getItem(`selectedProfile_${user.id}`);
@@ -199,10 +232,11 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({ children, user
     }
   }, [user]);
 
-  const value = {
+  const value: ProfileContextType = {
     profiles,
     selectedProfile,
     loading,
+    authChecked, // <-- exposed
     selectProfile,
     createProfile,
     updateProfile,
