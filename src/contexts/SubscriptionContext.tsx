@@ -24,9 +24,10 @@ export const useSubscription = () => {
 interface SubscriptionProviderProps {
   children: React.ReactNode;
   user: User | null;
+  authChecked: boolean; // <-- new: wait for App hydration before checking subscriptions
 }
 
-export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children, user }) => {
+export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children, user, authChecked }) => {
   const [isProUser, setIsProUser] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
@@ -59,9 +60,9 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         .eq('role', 'admin')
         .single();
 
-      const hasProSubscription = subscription?.subscribed && 
+      const hasProSubscription = subscription?.subscribed &&
         (subscription?.subscription_tier === 'Pro' || subscription?.subscription_tier === 'Yearly Pro');
-      
+
       const hasAdminRole = !!userRole;
 
       setIsProUser(hasProSubscription);
@@ -78,8 +79,17 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   };
 
   useEffect(() => {
+    // IMPORTANT: only run subscription checks once App has finished hydrating auth.
+    // If authChecked is false, keep loading = true and wait.
+    if (!authChecked) {
+      setLoading(true);
+      return;
+    }
+
+    // Now that auth is hydrated, run the subscription check (user may be null or populated).
     checkSubscription();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authChecked]);
 
   const hasAccess = isProUser || isAdmin;
 
