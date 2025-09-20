@@ -157,41 +157,38 @@ export default function WeeklyPlannerPage() {
     fetchSavedMeals();
   };
 
+  // === MINIMAL FIX: safe handler to avoid crashes + remove toast.action usage ===
   const handleSelectSavedMeal = (saved: SavedMeal) => {
-    const target = targetCellRef.current;
-    if (!target) return;
+    try {
+      const target = targetCellRef.current;
+      if (!target) {
+        // nothing to do
+        setSavedMealsDialogOpen(false);
+        return;
+      }
 
-    const prevValue = mealPlan[target.day]?.[target.meal] ?? "";
-    // set undo
-    undoRef.current = { day: target.day, meal: target.meal, prevValue };
+      const prevValue = mealPlan[target.day]?.[target.meal] ?? "";
+      // set undo
+      undoRef.current = { day: target.day, meal: target.meal, prevValue };
 
-    // replace cell
-    setMealPlan((prev) => ({
-      ...prev,
-      [target.day]: { ...prev[target.day], [target.meal]: saved.title },
-    }));
+      // replace cell
+      setMealPlan((prev) => ({
+        ...prev,
+        [target.day]: { ...prev[target.day], [target.meal]: saved.title ?? "" },
+      }));
 
-    setSavedMealsDialogOpen(false);
-    targetCellRef.current = null;
+      setSavedMealsDialogOpen(false);
+      targetCellRef.current = null;
 
-    // show toast with Undo action (assumes your useToast supports action)
-    toast({
-      title: "Item added!",
-      description: `"${saved.title}" added.`,
-      action: {
-        label: "Undo",
-        onClick: () => {
-          const u = undoRef.current;
-          if (!u) return;
-          setMealPlan((prev) => ({
-            ...prev,
-            [u.day]: { ...prev[u.day], [u.meal]: u.prevValue },
-          }));
-          undoRef.current = null;
-          toast({ title: "Restored", description: "Previous value restored." });
-        },
-      },
-    });
+      // simple toast (no action callback to avoid incompatibility)
+      toast({
+        title: "Item added!",
+        description: `"${saved.title}" added.`,
+      });
+    } catch (err: any) {
+      console.error("handleSelectSavedMeal error:", err);
+      toast({ title: "Error", description: err?.message || String(err), variant: "destructive" });
+    }
   };
 
   const deleteSavedMeal = async (id: string) => {
@@ -412,7 +409,7 @@ export default function WeeklyPlannerPage() {
       <div className="flex gap-3 mb-4 flex-wrap">
         <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button type="button" variant="outline" className="flex items-center gap-2">
               <Save className="w-4 h-4" />
               Save Plan
             </Button>
@@ -429,10 +426,10 @@ export default function WeeklyPlannerPage() {
                 onKeyDown={(e) => e.key === "Enter" && saveMealPlan()}
               />
               <div className="flex gap-2">
-                <Button onClick={saveMealPlan} disabled={!saveName.trim()}>
+                <Button type="button" onClick={saveMealPlan} disabled={!saveName.trim()}>
                   Save
                 </Button>
-                <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setSaveDialogOpen(false)}>
                   Cancel
                 </Button>
               </div>
@@ -442,7 +439,7 @@ export default function WeeklyPlannerPage() {
 
         <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button type="button" variant="outline" className="flex items-center gap-2">
               <FolderOpen className="w-4 h-4" />
               Load Plan
             </Button>
@@ -464,10 +461,10 @@ export default function WeeklyPlannerPage() {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => loadMealPlan(plan)}>
+                      <Button type="button" size="sm" onClick={() => loadMealPlan(plan)}>
                         Load
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteMealPlan(plan.id)}>
+                      <Button type="button" size="sm" variant="destructive" onClick={() => deleteMealPlan(plan.id)}>
                         Delete
                       </Button>
                     </div>
@@ -478,11 +475,11 @@ export default function WeeklyPlannerPage() {
           </DialogContent>
         </Dialog>
 
-        <Button variant="outline" onClick={clearPlan}>
+        <Button type="button" variant="outline" onClick={clearPlan}>
           Clear
         </Button>
 
-        <Button variant="outline" onClick={handleShoppingList}>
+        <Button type="button" variant="outline" onClick={handleShoppingList}>
           Shopping List
         </Button>
       </div>
@@ -517,6 +514,7 @@ export default function WeeklyPlannerPage() {
                           <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                             {/* Load (rotate arrows) - black icon */}
                             <button
+                              type="button"
                               title="Load saved meal"
                               onClick={() => openSavedMealsModalForCell(day, meal)}
                               className="p-1 rounded-full hover:bg-surface/80"
@@ -527,6 +525,7 @@ export default function WeeklyPlannerPage() {
 
                             {/* Save (blue) */}
                             <button
+                              type="button"
                               title="Save this meal"
                               onClick={() => saveMeal(day, meal)}
                               className="p-1 rounded-full hover:opacity-90 flex items-center justify-center"
@@ -566,6 +565,7 @@ export default function WeeklyPlannerPage() {
       {/* Generate AI Plan Button (bottom) */}
       <div className="mt-8 flex justify-center">
         <button
+          type="button"
           onClick={handleGenerateAIPlan}
           disabled={isLoading}
           className="bg-black text-white px-6 py-3 rounded-md font-semibold shadow-md hover:opacity-90 disabled:opacity-50 w-full md:w-auto"
@@ -593,8 +593,8 @@ export default function WeeklyPlannerPage() {
                     <p className="text-sm text-muted-foreground">{new Date(s.created_at).toLocaleString()}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleSelectSavedMeal(s)}>Load</Button>
-                    <Button size="sm" variant="destructive" onClick={() => deleteSavedMeal(s.id)}>Delete</Button>
+                    <Button type="button" size="sm" onClick={() => handleSelectSavedMeal(s)}>Load</Button>
+                    <Button type="button" size="sm" variant="destructive" onClick={() => deleteSavedMeal(s.id)}>Delete</Button>
                   </div>
                 </div>
               ))
