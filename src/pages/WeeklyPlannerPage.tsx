@@ -18,9 +18,6 @@ export default function WeeklyPlannerPage() {
 
       {/* Weekly Planner Table */}
       <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-xl">This Week's Meals</CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px]">
