@@ -1,14 +1,24 @@
 // src/pages/WeeklyPlannerPage.tsx
-import { useEffect, useState } from "react";
-import { Calendar } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Calendar, Save, FolderOpen, Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const meals = ["Breakfast", "Lunch", "Dinner", "Dessert"];
 
 type MealPlan = Record<string, Record<string, string>>;
+type SavedMealPlan = {
+  id: string;
+  name: string;
+  meal_plan: MealPlan;
+  created_at: string;
+  updated_at: string;
+};
 
 export default function WeeklyPlannerPage() {
   const { toast } = useToast();
@@ -22,33 +32,73 @@ export default function WeeklyPlannerPage() {
     return empty;
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [savedPlans, setSavedPlans] = useState<SavedMealPlan[]>([]);
+  const [saveName, setSaveName] = useState("");
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
 
-  // Load pantry preview (non-archived)
+  // Load pantry preview and saved plans
   useEffect(() => {
-    const fetchPantry = async () => {
+    const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
-      const userSupabase = supabase; // client uses stored auth in browser
-      const { data, error } = await userSupabase
+      
+      // Fetch pantry items
+      const { data: pantryData, error: pantryError } = await supabase
         .from("groceries")
         .select("id, name, expiration_date")
         .eq("type", "pantry")
         .eq("archived", false)
         .order("name", { ascending: true });
-      if (!error && data) setPantryItemsUI(data);
+      
+      if (!pantryError && pantryData) setPantryItemsUI(pantryData);
+      
+      // Fetch saved meal plans
+      const { data: plansData, error: plansError } = await (supabase as any)
+        .from("pastmealplans")
+        .select("*")
+        .order("updated_at", { ascending: false });
+      
+      if (!plansError && plansData) setSavedPlans(plansData as SavedMealPlan[]);
     };
-    fetchPantry();
+    fetchData();
   }, []);
 
-  // Controlled input handler
+  // Auto-save debounced function
+  const autoSave = useCallback(async (updatedPlan: MealPlan) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user || !currentPlanId) return;
+    
+    try {
+      await (supabase as any)
+        .from("pastmealplans")
+        .update({ 
+          meal_plan: updatedPlan,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", currentPlanId);
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    }
+  }, [currentPlanId]);
+
+  // Controlled input handler with auto-save
   const handleChange = (day: string, meal: string, value: string) => {
-    setMealPlan((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [meal]: value
-      }
-    }));
+    setMealPlan((prev) => {
+      const updated = {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          [meal]: value
+        }
+      };
+      
+      // Auto-save after 1 second delay
+      setTimeout(() => autoSave(updated), 1000);
+      
+      return updated;
+    });
   };
 
   // Generate AI Plan: call Supabase Edge Function generate-mealplan
@@ -105,6 +155,68 @@ export default function WeeklyPlannerPage() {
     }
   };
 
+  // Save meal plan
+  const saveMealPlan = async () => {
+    if (!saveName.trim()) {
+      toast({ title: "Error", description: "Please enter a name for your meal plan", variant: "destructive" });
+      return;
+    }
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({ title: "Error", description: "Please log in to save meal plans", variant: "destructive" });
+      return;
+    }
+    
+    try {
+      const { data, error } = await (supabase as any)
+        .from("pastmealplans")
+        .insert({
+          name: saveName,
+          meal_plan: mealPlan,
+          user_id: session.user.id
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setCurrentPlanId(data.id);
+      setSavedPlans(prev => [data as SavedMealPlan, ...prev]);
+      setSaveName("");
+      setSaveDialogOpen(false);
+      toast({ title: "Saved", description: `Meal plan "${saveName}" saved successfully` });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  // Load meal plan
+  const loadMealPlan = (plan: SavedMealPlan) => {
+    setMealPlan(plan.meal_plan);
+    setCurrentPlanId(plan.id);
+    setLoadDialogOpen(false);
+    toast({ title: "Loaded", description: `Meal plan "${plan.name}" loaded` });
+  };
+
+  // Delete meal plan
+  const deleteMealPlan = async (planId: string) => {
+    try {
+      const { error } = await (supabase as any)
+        .from("pastmealplans")
+        .delete()
+        .eq("id", planId);
+      
+      if (error) throw error;
+      
+      setSavedPlans(prev => prev.filter(p => p.id !== planId));
+      if (currentPlanId === planId) setCurrentPlanId(null);
+      toast({ title: "Deleted", description: "Meal plan deleted" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   // Button: Generate shopping list placeholder
   const handleShoppingList = () => {
     toast({ title: "Shopping list", description: "This feature is not implemented yet." });
@@ -118,6 +230,7 @@ export default function WeeklyPlannerPage() {
       meals.forEach((m) => (empty[d][m] = ""));
     });
     setMealPlan(empty);
+    setCurrentPlanId(null);
     toast({ title: "Cleared", description: "Weekly plan cleared." });
   };
 
@@ -137,20 +250,83 @@ export default function WeeklyPlannerPage() {
         </div>
       </div>
 
-      {/* Top Quick Action Buttons (kept minimal) */}
-      <div className="flex gap-3 mb-4">
-        <button
-          onClick={clearPlan}
-          className="px-4 py-2 border rounded-md"
-        >
+      {/* Top Quick Action Buttons */}
+      <div className="flex gap-3 mb-4 flex-wrap">
+        <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Save className="w-4 h-4" />
+              Save Plan
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Meal Plan</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                value={saveName}
+                onChange={(e) => setSaveName(e.target.value)}
+                placeholder="Enter plan name..."
+                onKeyDown={(e) => e.key === "Enter" && saveMealPlan()}
+              />
+              <div className="flex gap-2">
+                <Button onClick={saveMealPlan} disabled={!saveName.trim()}>
+                  Save
+                </Button>
+                <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <FolderOpen className="w-4 h-4" />
+              Load Plan
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Load Meal Plan</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {savedPlans.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No saved plans yet</p>
+              ) : (
+                savedPlans.map((plan) => (
+                  <div key={plan.id} className="flex items-center justify-between p-3 border rounded-md">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{plan.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(plan.updated_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => loadMealPlan(plan)}>
+                        Load
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => deleteMealPlan(plan.id)}>
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Button variant="outline" onClick={clearPlan}>
           Clear
-        </button>
-        <button
-          onClick={handleShoppingList}
-          className="px-4 py-2 border rounded-md"
-        >
+        </Button>
+        
+        <Button variant="outline" onClick={handleShoppingList}>
           Shopping List
-        </button>
+        </Button>
       </div>
 
       {/* Weekly Planner Table */}
@@ -196,29 +372,14 @@ export default function WeeklyPlannerPage() {
         </CardContent>
       </Card>
 
-      {/* Quick Actions (cards) */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6 text-center">
-            <h3 className="font-semibold text-foreground mb-2">Save Template</h3>
-            <p className="text-sm text-muted-foreground">Save this week's plan as a reusable template</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow" onClick={handleShoppingList}>
-          <CardContent className="p-6 text-center">
-            <h3 className="font-semibold text-foreground mb-2">Shopping List</h3>
-            <p className="text-sm text-muted-foreground">Generate shopping list from your meal plan</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6 text-center">
-            <h3 className="font-semibold text-foreground mb-2">AI Suggestions</h3>
-            <p className="text-sm text-muted-foreground">AI can auto-fill meals using your pantry</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Status indicator */}
+      {currentPlanId && (
+        <div className="mt-6 p-3 bg-green-50 border border-green-200 rounded-md">
+          <p className="text-sm text-green-800">
+            ✓ Changes are automatically saved to your current meal plan
+          </p>
+        </div>
+      )}
 
       {/* Generate AI Plan Button (bottom) */}
       <div className="mt-8 flex justify-center">
