@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Package, Zap, BarChart3, LogOut, MessageSquare, ChevronDown, Settings, Palette, Menu, X } from "lucide-react";
+import { Home, Package, Zap, BarChart3, LogOut, MessageSquare, ChevronDown, Settings, Palette, Menu, X, CalendarDays } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
@@ -171,6 +171,16 @@ export const Navigation = () => {
                       >
                         <Package className="w-4 h-4" />
                         <span>Switch Profiles</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/weekly-planner");
+                          setShowProfileDropdown(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-surface-secondary transition-colors flex items-center space-x-2"
+                      >
+                        <CalendarDays className="w-4 h-4" />
+                        <span>Weekly Planner</span>
                       </button>
                       <button
                         onClick={() => {
