@@ -1,10 +1,16 @@
 // src/pages/WeeklyPlannerPage.tsx
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Calendar, Save, FolderOpen } from "lucide-react";
+import { Calendar, Save, FolderOpen, RotateCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +24,13 @@ type SavedMealPlan = {
   meal_plan: MealPlan;
   created_at: string;
   updated_at: string;
+};
+
+type SavedMeal = {
+  id: string;
+  user_id: string;
+  title: string;
+  created_at: string;
 };
 
 export default function WeeklyPlannerPage() {
@@ -37,6 +50,13 @@ export default function WeeklyPlannerPage() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+
+  // --- New: saved meals state + modal + target cell + undo
+  const [savedMeals, setSavedMeals] = useState<SavedMeal[]>([]);
+  const [savedMealsDialogOpen, setSavedMealsDialogOpen] = useState(false);
+  const [savedMealsLoading, setSavedMealsLoading] = useState(false);
+  const targetCellRef = useRef<{ day: string; meal: string } | null>(null);
+  const undoRef = useRef<{ day: string; meal: string; prevValue: string } | null>(null);
 
   // debounce timer ref for auto-save
   const saveTimer = useRef<number | null>(null);
@@ -68,7 +88,127 @@ export default function WeeklyPlannerPage() {
     fetchData();
   }, []);
 
-  // Auto-save debounced function
+  // -----------------------
+  // Saved meals helpers
+  // -----------------------
+  const fetchSavedMeals = useCallback(async () => {
+    setSavedMealsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setSavedMeals([]);
+        setSavedMealsLoading(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from<SavedMeal>("savedmeals")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setSavedMeals(data ?? []);
+    } catch (err: any) {
+      console.error("fetchSavedMeals error:", err);
+      toast({ title: "Failed to load saved meals", description: err?.message || String(err), variant: "destructive" });
+    } finally {
+      setSavedMealsLoading(false);
+    }
+  }, [toast]);
+
+  // fetch saved meals on mount so modal opens fast
+  useEffect(() => {
+    fetchSavedMeals();
+  }, [fetchSavedMeals]);
+
+  const saveMeal = async (day: string, meal: string) => {
+    const value = mealPlan[day]?.[meal] ?? "";
+    if (!value.trim()) {
+      toast({ title: "Empty", description: "Cannot save an empty meal", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast({ title: "Not logged in", description: "Please log in to save meals", variant: "destructive" });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("savedmeals")
+        .insert({ title: value.trim(), user_id: session.user.id })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // refresh saved meals
+      await fetchSavedMeals();
+
+      toast({ title: "Meal saved!", description: `"${value.trim()}" saved to your recipes.` });
+    } catch (err: any) {
+      console.error("saveMeal error:", err);
+      toast({ title: "Save failed", description: err?.message || String(err), variant: "destructive" });
+    }
+  };
+
+  const openSavedMealsModalForCell = (day: string, meal: string) => {
+    targetCellRef.current = { day, meal };
+    setSavedMealsDialogOpen(true);
+    fetchSavedMeals();
+  };
+
+  const handleSelectSavedMeal = (saved: SavedMeal) => {
+    const target = targetCellRef.current;
+    if (!target) return;
+
+    const prevValue = mealPlan[target.day]?.[target.meal] ?? "";
+    // set undo
+    undoRef.current = { day: target.day, meal: target.meal, prevValue };
+
+    // replace cell
+    setMealPlan((prev) => ({
+      ...prev,
+      [target.day]: { ...prev[target.day], [target.meal]: saved.title },
+    }));
+
+    setSavedMealsDialogOpen(false);
+    targetCellRef.current = null;
+
+    // show toast with Undo action (assumes your useToast supports action)
+    toast({
+      title: "Item added!",
+      description: `"${saved.title}" added.`,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const u = undoRef.current;
+          if (!u) return;
+          setMealPlan((prev) => ({
+            ...prev,
+            [u.day]: { ...prev[u.day], [u.meal]: u.prevValue },
+          }));
+          undoRef.current = null;
+          toast({ title: "Restored", description: "Previous value restored." });
+        },
+      },
+    });
+  };
+
+  const deleteSavedMeal = async (id: string) => {
+    try {
+      const { error } = await supabase.from("savedmeals").delete().eq("id", id);
+      if (error) throw error;
+      await fetchSavedMeals();
+      toast({ title: "Deleted", description: "Saved meal deleted." });
+    } catch (err: any) {
+      console.error("deleteSavedMeal error:", err);
+      toast({ title: "Delete failed", description: err?.message || String(err), variant: "destructive" });
+    }
+  };
+
+  // -----------------------
+  // Auto-save (existing code)
+  // -----------------------
   const autoSave = useCallback(async (updatedPlan: MealPlan) => {
     // only auto-save when there's a plan row to update
     if (!currentPlanId) return;
@@ -77,7 +217,6 @@ export default function WeeklyPlannerPage() {
         .from("pastmealplans")
         .update({
           meal_plan: updatedPlan,
-          // updated_at is handled by trigger, but we include it for safety in case trigger is not present
           updated_at: new Date().toISOString()
         })
         .eq("id", currentPlanId);
@@ -120,7 +259,11 @@ export default function WeeklyPlannerPage() {
     };
   }, []);
 
-  // Generate AI Plan: call Supabase Edge Function generate-mealplan
+  // -----------------------
+  // Remaining original functions unchanged
+  // (generate AI plan, save/load/delete plan, shopping list, clear, etc.)
+  // -----------------------
+
   const handleGenerateAIPlan = async () => {
     setIsLoading(true);
     try {
@@ -172,7 +315,6 @@ export default function WeeklyPlannerPage() {
     }
   };
 
-  // Save meal plan (explicit create)
   const saveMealPlan = async () => {
     if (!saveName.trim()) {
       toast({ title: "Error", description: "Please enter a name for your meal plan", variant: "destructive" });
@@ -211,7 +353,6 @@ export default function WeeklyPlannerPage() {
     }
   };
 
-  // Load meal plan
   const loadMealPlan = (plan: SavedMealPlan) => {
     setMealPlan(plan.meal_plan);
     setCurrentPlanId(plan.id);
@@ -219,7 +360,6 @@ export default function WeeklyPlannerPage() {
     toast({ title: "Loaded", description: `Meal plan "${plan.name}" loaded` });
   };
 
-  // Delete meal plan
   const deleteMealPlan = async (planId: string) => {
     try {
       const { error } = await (supabase as any)
@@ -237,12 +377,10 @@ export default function WeeklyPlannerPage() {
     }
   };
 
-  // Button: Generate shopping list placeholder
   const handleShoppingList = () => {
     toast({ title: "Shopping list", description: "This feature is not implemented yet." });
   };
 
-  // Clear plan helper
   const clearPlan = () => {
     const empty: MealPlan = {};
     days.forEach((d) => {
@@ -374,7 +512,31 @@ export default function WeeklyPlannerPage() {
                     </td>
                     {days.map((day) => (
                       <td key={`${meal}-${day}`} className="p-4 border-r border-border last:border-r-0">
-                        <div className="min-h-[80px] w-full">
+                        <div className="relative group min-h-[80px] w-full">
+                          {/* hover-only small buttons in top-right */}
+                          <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                            {/* Load (rotate arrows) - black icon */}
+                            <button
+                              title="Load saved meal"
+                              onClick={() => openSavedMealsModalForCell(day, meal)}
+                              className="p-1 rounded-full hover:bg-surface/80"
+                              aria-label={`Load saved meal for ${day} ${meal}`}
+                            >
+                              <RotateCw className="w-4 h-4 text-black" />
+                            </button>
+
+                            {/* Save (blue) */}
+                            <button
+                              title="Save this meal"
+                              onClick={() => saveMeal(day, meal)}
+                              className="p-1 rounded-full hover:opacity-90 flex items-center justify-center"
+                              aria-label={`Save meal ${day} ${meal}`}
+                              style={{ backgroundColor: "#0ea5e9" }}
+                            >
+                              <Save className="w-4 h-4 text-white" />
+                            </button>
+                          </div>
+
                           <textarea
                             value={mealPlan[day]?.[meal] ?? ""}
                             onChange={(e) => handleChange(day, meal, e.target.value)}
@@ -411,6 +573,35 @@ export default function WeeklyPlannerPage() {
           {isLoading ? "Generating…" : "Generate AI Plan"}
         </button>
       </div>
+
+      {/* Saved meals modal (small) */}
+      <Dialog open={savedMealsDialogOpen} onOpenChange={(v) => setSavedMealsDialogOpen(v)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Saved Meals</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {savedMealsLoading ? (
+              <p className="text-muted-foreground text-center py-4">Loading...</p>
+            ) : savedMeals.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No saved meals yet</p>
+            ) : (
+              savedMeals.map((s) => (
+                <div key={s.id} className="flex items-center justify-between p-3 border rounded-md">
+                  <div className="flex-1">
+                    <h4 className="font-medium truncate">{s.title}</h4>
+                    <p className="text-sm text-muted-foreground">{new Date(s.created_at).toLocaleString()}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => handleSelectSavedMeal(s)}>Load</Button>
+                    <Button size="sm" variant="destructive" onClick={() => deleteSavedMeal(s.id)}>Delete</Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
