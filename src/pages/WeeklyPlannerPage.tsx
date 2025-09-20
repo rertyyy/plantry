@@ -1,6 +1,6 @@
 // src/pages/WeeklyPlannerPage.tsx
-import { useEffect, useState, useCallback } from "react";
-import { Calendar, Save, FolderOpen, Plus } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Calendar, Save, FolderOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,12 +38,15 @@ export default function WeeklyPlannerPage() {
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
 
+  // debounce timer ref for auto-save
+  const saveTimer = useRef<number | null>(null);
+
   // Load pantry preview and saved plans
   useEffect(() => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
-      
+
       // Fetch pantry items
       const { data: pantryData, error: pantryError } = await supabase
         .from("groceries")
@@ -51,15 +54,15 @@ export default function WeeklyPlannerPage() {
         .eq("type", "pantry")
         .eq("archived", false)
         .order("name", { ascending: true });
-      
+
       if (!pantryError && pantryData) setPantryItemsUI(pantryData);
-      
-      // Fetch saved meal plans
+
+      // Fetch saved meal plans (RLS will ensure user-only rows)
       const { data: plansData, error: plansError } = await (supabase as any)
         .from("pastmealplans")
         .select("*")
         .order("updated_at", { ascending: false });
-      
+
       if (!plansError && plansData) setSavedPlans(plansData as SavedMealPlan[]);
     };
     fetchData();
@@ -67,14 +70,14 @@ export default function WeeklyPlannerPage() {
 
   // Auto-save debounced function
   const autoSave = useCallback(async (updatedPlan: MealPlan) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user || !currentPlanId) return;
-    
+    // only auto-save when there's a plan row to update
+    if (!currentPlanId) return;
     try {
       await (supabase as any)
         .from("pastmealplans")
-        .update({ 
+        .update({
           meal_plan: updatedPlan,
+          // updated_at is handled by trigger, but we include it for safety in case trigger is not present
           updated_at: new Date().toISOString()
         })
         .eq("id", currentPlanId);
@@ -83,7 +86,7 @@ export default function WeeklyPlannerPage() {
     }
   }, [currentPlanId]);
 
-  // Controlled input handler with auto-save
+  // Controlled input handler with debounce
   const handleChange = (day: string, meal: string, value: string) => {
     setMealPlan((prev) => {
       const updated = {
@@ -93,19 +96,34 @@ export default function WeeklyPlannerPage() {
           [meal]: value
         }
       };
-      
-      // Auto-save after 1 second delay
-      setTimeout(() => autoSave(updated), 1000);
-      
+
+      // Debounce: clear previous timer and set a new one
+      if (saveTimer.current) {
+        window.clearTimeout(saveTimer.current);
+      }
+      saveTimer.current = window.setTimeout(() => {
+        autoSave(updated);
+        saveTimer.current = null;
+      }, 1000);
+
       return updated;
     });
   };
+
+  // cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+    };
+  }, []);
 
   // Generate AI Plan: call Supabase Edge Function generate-mealplan
   const handleGenerateAIPlan = async () => {
     setIsLoading(true);
     try {
-      // Pass pantry items (function also supports DB extraction if not provided)
       const body = {
         userMessage: "Please create a weekly meal plan using pantry items.",
         pantryItems: pantryItemsUI.map(p => ({ name: p.name, expiration_date: p.expiration_date }))
@@ -130,7 +148,6 @@ export default function WeeklyPlannerPage() {
             if (remoteVal && remoteVal !== "SHOPPING NEEDED") {
               next[d][m] = remoteVal;
             } else {
-              // keep existing or empty
               next[d][m] = prev[d]?.[m] ?? "";
             }
           });
@@ -155,37 +172,40 @@ export default function WeeklyPlannerPage() {
     }
   };
 
-  // Save meal plan
+  // Save meal plan (explicit create)
   const saveMealPlan = async () => {
     if (!saveName.trim()) {
       toast({ title: "Error", description: "Please enter a name for your meal plan", variant: "destructive" });
       return;
     }
-    
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       toast({ title: "Error", description: "Please log in to save meal plans", variant: "destructive" });
       return;
     }
-    
+
+    const nameToSave = saveName.trim();
+
     try {
       const { data, error } = await (supabase as any)
         .from("pastmealplans")
         .insert({
-          name: saveName,
+          name: nameToSave,
           meal_plan: mealPlan,
           user_id: session.user.id
         })
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       setCurrentPlanId(data.id);
       setSavedPlans(prev => [data as SavedMealPlan, ...prev]);
       setSaveName("");
       setSaveDialogOpen(false);
-      toast({ title: "Saved", description: `Meal plan "${saveName}" saved successfully` });
+
+      toast({ title: "Saved", description: `Meal plan "${nameToSave}" saved successfully` });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
@@ -206,9 +226,9 @@ export default function WeeklyPlannerPage() {
         .from("pastmealplans")
         .delete()
         .eq("id", planId);
-      
+
       if (error) throw error;
-      
+
       setSavedPlans(prev => prev.filter(p => p.id !== planId));
       if (currentPlanId === planId) setCurrentPlanId(null);
       toast({ title: "Deleted", description: "Meal plan deleted" });
@@ -323,7 +343,7 @@ export default function WeeklyPlannerPage() {
         <Button variant="outline" onClick={clearPlan}>
           Clear
         </Button>
-        
+
         <Button variant="outline" onClick={handleShoppingList}>
           Shopping List
         </Button>
