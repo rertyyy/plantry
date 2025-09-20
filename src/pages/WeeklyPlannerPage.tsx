@@ -33,6 +33,9 @@ type SavedMeal = {
   created_at: string;
 };
 
+// <--- NEW: local draft key
+const DRAFT_KEY = "weekly_mealplan_draft";
+
 export default function WeeklyPlannerPage() {
   const { toast } = useToast();
   const [pantryItemsUI, setPantryItemsUI] = useState<Array<{ id: string; name: string; expiration_date: string }>>([]);
@@ -326,6 +329,40 @@ export default function WeeklyPlannerPage() {
     });
   };
 
+  // --- NEW: load draft from localStorage on mount if table currently empty
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      // only apply draft if the current in-memory table is "all empty"
+      const isAllEmpty = Object.values(mealPlan).every((dayMap) =>
+        Object.values(dayMap).every((v) => !v || String(v).trim() === "")
+      );
+      if (isAllEmpty && parsed && typeof parsed === "object") {
+        setMealPlan(parsed);
+      }
+    } catch (err) {
+      // ignore parse errors
+      console.warn("Failed to load meal plan draft:", err);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
+
+  // --- NEW: persist draft to localStorage when mealPlan changes (debounced)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const t = window.setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(mealPlan));
+      } catch (err) {
+        console.warn("Failed to write meal plan draft:", err);
+      }
+    }, 500);
+    return () => window.clearTimeout(t);
+  }, [mealPlan]);
+
   // cleanup timer on unmount
   useEffect(() => {
     return () => {
@@ -429,6 +466,9 @@ export default function WeeklyPlannerPage() {
       setSaveName("");
       setSaveDialogOpen(false);
 
+      // remove local draft now that we've persisted
+      try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+
       // show toast (no undo for plan save)
       toast({ title: "Saved", description: `Meal plan "${nameToSave}" saved successfully` });
     } catch (error: any) {
@@ -442,6 +482,10 @@ export default function WeeklyPlannerPage() {
     setMealPlan(plan.meal_plan);
     setCurrentPlanId(plan.id);
     setLoadDialogOpen(false);
+
+    // remove local draft because user intentionally loaded a saved plan
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+
     // register undo for full plan load
     showUndoPillFor("plan", { prevPlan: prevPlanJSON }, "Loaded", `Meal plan "${plan.name}" loaded`);
   };
@@ -480,6 +524,10 @@ export default function WeeklyPlannerPage() {
     });
     setMealPlan(empty);
     setCurrentPlanId(null);
+
+    // remove local draft because user intentionally cleared
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+
     // register undo for clear
     showUndoPillFor("plan", { prevPlan: prevPlanJSON }, "Cleared", "Weekly plan cleared.");
   };
