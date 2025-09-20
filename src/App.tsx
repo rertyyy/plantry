@@ -20,6 +20,7 @@ import ContactPage from "./pages/ContactPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import PreferencesPage from "./pages/PreferencesPage";
+import WeeklyPlannerPage from "./pages/WeeklyPlannerPage";
 import NotFound from "./pages/NotFound";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
@@ -139,14 +140,16 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path="/insights"
-                      element={
-                        <ProtectedRoute user={user}>
-                          <InsightsPage />
-                        </ProtectedRoute>
-                      }
-                    />
+                    <Route path="/insights" element={
+                      <ProtectedRoute user={user}>
+                        <InsightsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/weekly-planner" element={
+                      <ProtectedRoute user={user}>
+                        <WeeklyPlannerPage />
+                      </ProtectedRoute>
+                    } />
 
                     <Route path="*" element={<NotFound />} />
                   </Routes>
