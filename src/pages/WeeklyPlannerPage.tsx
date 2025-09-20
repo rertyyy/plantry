@@ -653,8 +653,8 @@ export default function WeeklyPlannerPage() {
                     {days.map((day) => (
                       <td key={`${meal}-${day}`} className="p-4 border-r border-border last:border-r-0">
                         <div className="relative group min-h-[80px] w-full">
-                          {/* hover-only small buttons in top-right */}
-                          <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                          {/* hover-only small buttons in bottom-right */}
+                          <div className="absolute bottom-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                             {/* Load (rotate arrows) - black icon */}
                             <button
                               type="button"
@@ -673,7 +673,7 @@ export default function WeeklyPlannerPage() {
                               onClick={() => saveMeal(day, meal)}
                               className="p-1 rounded-full hover:opacity-90 flex items-center justify-center"
                               aria-label={`Save meal ${day} ${meal}`}
-                              style={{ backgroundColor: "#0ea5e9" }}
+                              style={{ backgroundColor: "#3672ff" }}
                             >
                               <Save className="w-4 h-4 text-white" />
                             </button>
