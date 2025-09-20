@@ -56,7 +56,14 @@ export default function WeeklyPlannerPage() {
   const [savedMealsDialogOpen, setSavedMealsDialogOpen] = useState(false);
   const [savedMealsLoading, setSavedMealsLoading] = useState(false);
   const targetCellRef = useRef<{ day: string; meal: string } | null>(null);
-  const undoRef = useRef<{ day: string; meal: string; prevValue: string } | null>(null);
+
+  // Generalized undo action ref:
+  // { kind: 'cell'|'plan'|'saved_insert'|'saved_delete', data: any }
+  const undoActionRef = useRef<{ kind: string; data: any } | null>(null);
+
+  // Undo pill UI
+  const [showUndoPill, setShowUndoPill] = useState(false);
+  const undoTimerRef = useRef<number | null>(null);
 
   // debounce timer ref for auto-save
   const saveTimer = useRef<number | null>(null);
@@ -119,6 +126,77 @@ export default function WeeklyPlannerPage() {
     fetchSavedMeals();
   }, [fetchSavedMeals]);
 
+  // ---- helper: show undo pill and schedule hide ----
+  const showUndoPillFor = (kind: string, data: any, toastTitle: string, toastDesc?: string) => {
+    // store undo action
+    undoActionRef.current = { kind, data };
+
+    // show toast (simple)
+    toast({
+      title: toastTitle,
+      description: toastDesc,
+    });
+
+    // show pill UI
+    setShowUndoPill(true);
+    if (undoTimerRef.current) {
+      window.clearTimeout(undoTimerRef.current);
+    }
+    // hide after 6s
+    undoTimerRef.current = window.setTimeout(() => {
+      setShowUndoPill(false);
+      undoActionRef.current = null;
+      undoTimerRef.current = null;
+    }, 6000);
+  };
+
+  // ---- helper: perform undo based on undoActionRef ----
+  const performUndo = async () => {
+    const action = undoActionRef.current;
+    if (!action) return;
+    try {
+      if (action.kind === "cell") {
+        const { day, meal, prevValue } = action.data;
+        setMealPlan((prev) => ({
+          ...prev,
+          [day]: { ...prev[day], [meal]: prevValue },
+        }));
+      } else if (action.kind === "plan") {
+        const prevPlan = action.data.prevPlan;
+        if (prevPlan) {
+          setMealPlan(JSON.parse(prevPlan));
+        }
+      } else if (action.kind === "saved_insert") {
+        // undo a recently inserted savedmeal by deleting it
+        const id = action.data.id;
+        if (id) {
+          await supabase.from("savedmeals").delete().eq("id", id);
+          await fetchSavedMeals();
+        }
+      } else if (action.kind === "saved_delete") {
+        // undo a deleted savedmeal by reinserting it (title required)
+        const { title } = action.data;
+        if (title) {
+          await supabase.from("savedmeals").insert({ title, user_id: action.data.user_id ?? null });
+          await fetchSavedMeals();
+        }
+      }
+      // success feedback
+      toast({ title: "Restored", description: "Previous value restored." });
+    } catch (err: any) {
+      console.error("performUndo error:", err);
+      toast({ title: "Undo failed", description: err?.message || String(err), variant: "destructive" });
+    } finally {
+      // clear undo state and hide pill
+      undoActionRef.current = null;
+      setShowUndoPill(false);
+      if (undoTimerRef.current) {
+        window.clearTimeout(undoTimerRef.current);
+        undoTimerRef.current = null;
+      }
+    }
+  };
+
   const saveMeal = async (day: string, meal: string) => {
     const value = mealPlan[day]?.[meal] ?? "";
     if (!value.trim()) {
@@ -144,7 +222,8 @@ export default function WeeklyPlannerPage() {
       // refresh saved meals
       await fetchSavedMeals();
 
-      toast({ title: "Meal saved!", description: `"${value.trim()}" saved to your recipes.` });
+      // show toast + undo pill that lets user delete the inserted saved meal
+      showUndoPillFor("saved_insert", { id: data.id }, "Meal saved!", `"${value.trim()}" saved to your recipes.`);
     } catch (err: any) {
       console.error("saveMeal error:", err);
       toast({ title: "Save failed", description: err?.message || String(err), variant: "destructive" });
@@ -157,7 +236,7 @@ export default function WeeklyPlannerPage() {
     fetchSavedMeals();
   };
 
-  // === MINIMAL FIX: safe handler to avoid crashes + remove toast.action usage ===
+  // === MINIMAL FIX: safe handler to avoid crashes ===
   const handleSelectSavedMeal = (saved: SavedMeal) => {
     try {
       const target = targetCellRef.current;
@@ -168,8 +247,8 @@ export default function WeeklyPlannerPage() {
       }
 
       const prevValue = mealPlan[target.day]?.[target.meal] ?? "";
-      // set undo
-      undoRef.current = { day: target.day, meal: target.meal, prevValue };
+      // set undo action (cell)
+      undoActionRef.current = { kind: "cell", data: { day: target.day, meal: target.meal, prevValue } };
 
       // replace cell
       setMealPlan((prev) => ({
@@ -180,11 +259,8 @@ export default function WeeklyPlannerPage() {
       setSavedMealsDialogOpen(false);
       targetCellRef.current = null;
 
-      // simple toast (no action callback to avoid incompatibility)
-      toast({
-        title: "Item added!",
-        description: `"${saved.title}" added.`,
-      });
+      // show toast + undo pill (cell-level undo)
+      showUndoPillFor("cell", { day: target.day, meal: target.meal, prevValue }, "Item added!", `"${saved.title}" added.`);
     } catch (err: any) {
       console.error("handleSelectSavedMeal error:", err);
       toast({ title: "Error", description: err?.message || String(err), variant: "destructive" });
@@ -193,10 +269,14 @@ export default function WeeklyPlannerPage() {
 
   const deleteSavedMeal = async (id: string) => {
     try {
+      // capture deleted row (from local cache) for undo
+      const toDelete = savedMeals.find((s) => s.id === id);
+      const deletedTitle = toDelete?.title ?? null;
       const { error } = await supabase.from("savedmeals").delete().eq("id", id);
       if (error) throw error;
       await fetchSavedMeals();
-      toast({ title: "Deleted", description: "Saved meal deleted." });
+      // show undo pill to reinsert the saved meal (title used)
+      showUndoPillFor("saved_delete", { title: deletedTitle, user_id: undefined }, "Deleted", "Saved meal deleted.");
     } catch (err: any) {
       console.error("deleteSavedMeal error:", err);
       toast({ title: "Delete failed", description: err?.message || String(err), variant: "destructive" });
@@ -253,6 +333,10 @@ export default function WeeklyPlannerPage() {
         window.clearTimeout(saveTimer.current);
         saveTimer.current = null;
       }
+      if (undoTimerRef.current) {
+        window.clearTimeout(undoTimerRef.current);
+        undoTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -278,6 +362,9 @@ export default function WeeklyPlannerPage() {
 
       if (!remotePlan) throw new Error("Invalid meal plan returned");
 
+      // Save previous full plan for undo
+      const prevPlanJSON = JSON.stringify(mealPlan);
+
       // Merge into local state (overwrite with remote values when provided and not SHOPPING NEEDED)
       setMealPlan((prev) => {
         const next: MealPlan = {};
@@ -295,10 +382,8 @@ export default function WeeklyPlannerPage() {
         return next;
       });
 
-      toast({
-        title: shoppingNeeded ? "Partial Fill — Shopping Needed" : "Weekly Plan Filled",
-        description: aiMessage || (shoppingNeeded ? "Some slots require shopping." : "Your week is filled using pantry items.")
-      });
+      // register undo for the whole plan replacement
+      showUndoPillFor("plan", { prevPlan: prevPlanJSON }, shoppingNeeded ? "Partial Fill — Shopping Needed" : "Weekly Plan Filled", aiMessage || (shoppingNeeded ? "Some slots require shopping." : "Your week is filled using pantry items."));
 
     } catch (err: any) {
       console.error("generate-mealplan error:", err);
@@ -344,6 +429,7 @@ export default function WeeklyPlannerPage() {
       setSaveName("");
       setSaveDialogOpen(false);
 
+      // show toast (no undo for plan save)
       toast({ title: "Saved", description: `Meal plan "${nameToSave}" saved successfully` });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -351,14 +437,19 @@ export default function WeeklyPlannerPage() {
   };
 
   const loadMealPlan = (plan: SavedMealPlan) => {
+    // store prev plan for undo
+    const prevPlanJSON = JSON.stringify(mealPlan);
     setMealPlan(plan.meal_plan);
     setCurrentPlanId(plan.id);
     setLoadDialogOpen(false);
-    toast({ title: "Loaded", description: `Meal plan "${plan.name}" loaded` });
+    // register undo for full plan load
+    showUndoPillFor("plan", { prevPlan: prevPlanJSON }, "Loaded", `Meal plan "${plan.name}" loaded`);
   };
 
   const deleteMealPlan = async (planId: string) => {
     try {
+      // capture plan for undo if present locally
+      const planToDelete = savedPlans.find((p) => p.id === planId);
       const { error } = await (supabase as any)
         .from("pastmealplans")
         .delete()
@@ -368,7 +459,9 @@ export default function WeeklyPlannerPage() {
 
       setSavedPlans(prev => prev.filter(p => p.id !== planId));
       if (currentPlanId === planId) setCurrentPlanId(null);
-      toast({ title: "Deleted", description: "Meal plan deleted" });
+
+      // allow undo: reinsert plan (we store the plan object)
+      showUndoPillFor("saved_delete", { title: planToDelete?.name ?? null, meal_plan: planToDelete?.meal_plan ?? null, user_id: planToDelete?.user_id ?? null }, "Deleted", "Meal plan deleted");
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
@@ -379,6 +472,7 @@ export default function WeeklyPlannerPage() {
   };
 
   const clearPlan = () => {
+    const prevPlanJSON = JSON.stringify(mealPlan);
     const empty: MealPlan = {};
     days.forEach((d) => {
       empty[d] = {};
@@ -386,7 +480,8 @@ export default function WeeklyPlannerPage() {
     });
     setMealPlan(empty);
     setCurrentPlanId(null);
-    toast({ title: "Cleared", description: "Weekly plan cleared." });
+    // register undo for clear
+    showUndoPillFor("plan", { prevPlan: prevPlanJSON }, "Cleared", "Weekly plan cleared.");
   };
 
   return (
@@ -602,6 +697,19 @@ export default function WeeklyPlannerPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* UNDO pill (black rounded button) */}
+      {showUndoPill && (
+        <div className="fixed right-6 bottom-6 z-50">
+          <button
+            type="button"
+            onClick={performUndo}
+            className="px-3 py-2 rounded-full bg-black text-white font-medium shadow"
+          >
+            Undo
+          </button>
+        </div>
+      )}
     </div>
   );
 }
