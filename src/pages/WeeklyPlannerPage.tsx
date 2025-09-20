@@ -511,9 +511,6 @@ export default function WeeklyPlannerPage() {
     }
   };
 
-  const handleShoppingList = () => {
-    toast({ title: "Shopping list", description: "This feature is not implemented yet." });
-  };
 
   const clearPlan = () => {
     const prevPlanJSON = JSON.stringify(mealPlan);
@@ -620,10 +617,6 @@ export default function WeeklyPlannerPage() {
 
         <Button type="button" variant="outline" onClick={clearPlan}>
           Clear
-        </Button>
-
-        <Button type="button" variant="outline" onClick={handleShoppingList}>
-          Shopping List
         </Button>
       </div>
 
